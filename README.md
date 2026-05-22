@@ -32,7 +32,8 @@ The application is designed to be lightweight enough to run on a local machine, 
 - Docker Compose support
 - GitHub Actions CI workflow
 - GitHub Container Registry image publishing
-- Jenkins pipeline starter file
+- Jenkins pipeline support
+- Jenkins local CI pipeline tested successfully
 - Ansible local deployment starter
 - Kubernetes deployment starter
 - Terraform starter folders for AWS and GCP
@@ -56,6 +57,7 @@ The current working MVP supports:
 - Passing local `pytest` tests
 - Passing GitHub Actions CI
 - Publishing a Docker image to GitHub Container Registry on release
+- Running a Jenkins pipeline that clones the repo, builds the Docker image, runs tests, starts a container, and performs a `/health` smoke test
 
 ---
 
@@ -101,6 +103,7 @@ The project showcases:
 - Running automated tests through GitHub Actions
 - Publishing a container image to GitHub Container Registry
 - Running the app from a published Docker image
+- Running a Jenkins-based local CI pipeline
 - Preparing deployment paths for Docker, Kubernetes, Ansible, and Terraform
 - Designing a project that can later be hosted on a personal homelab or cloud platform
 
@@ -124,6 +127,44 @@ HTML report is generated
 Email is sent to the user
         ↓
 User opens the report link from email
+```
+
+---
+
+## DevOps Flow
+
+```text
+Developer pushes code to GitHub
+        ↓
+GitHub Actions runs tests
+        ↓
+GitHub Release triggers Docker publish workflow
+        ↓
+Docker image is published to GitHub Container Registry
+        ↓
+Image can be pulled and run locally or on another host
+```
+
+Local Jenkins pipeline flow:
+
+```text
+Jenkins starts pipeline
+        ↓
+Workspace is cleaned
+        ↓
+Repository is cloned from GitHub
+        ↓
+Docker image is built
+        ↓
+pytest runs inside the Docker image
+        ↓
+Application container is started on port 8001
+        ↓
+/health endpoint is tested
+        ↓
+Test container is removed
+        ↓
+Pipeline finishes successfully
 ```
 
 ---
@@ -443,6 +484,53 @@ This allows the application to be pulled and run as a container image.
 
 ---
 
+## Jenkins Pipeline
+
+A `Jenkinsfile` is included in the repository.
+
+The Jenkins pipeline is designed to:
+
+- Check out the repository
+- Build the Docker image
+- Run `pytest` inside the Docker image
+- Start a test application container
+- Perform a `/health` smoke test
+- Clean up the test container
+
+Jenkins pipeline stages:
+
+```text
+Checkout
+Build Docker Image
+Run Tests
+Smoke Test Container
+```
+
+The local Jenkins demo was tested using a separate Jenkins container on port `8081` to avoid affecting another Jenkins setup.
+
+Tested Jenkins flow:
+
+```text
+Jenkins cloned the GitHub repository
+Jenkins built the Docker image
+Jenkins ran pytest inside the Docker image
+Jenkins started the app container on port 8001
+Jenkins checked http://host.docker.internal:8001/health
+Jenkins received {"status":"ok"}
+Jenkins finished successfully
+```
+
+Important note:
+
+```text
+The repository includes the Jenkinsfile version of the pipeline.
+The local Jenkins demo may use the same pipeline logic as an inline Jenkins script if the local Jenkins SCM configuration has issues reading the Jenkinsfile directly from GitHub.
+```
+
+This still demonstrates the main Jenkins CI process clearly.
+
+---
+
 ## Docker
 
 Docker is included so that the project can run consistently across different machines.
@@ -461,22 +549,8 @@ The application has been tested in the following ways:
 Local Python virtual environment
 Docker Compose
 Published GHCR Docker image
+Jenkins-built Docker image
 ```
-
----
-
-## Jenkins
-
-A `Jenkinsfile` is included as a starter pipeline.
-
-This can be used later to demonstrate:
-
-- Pipeline as Code
-- Checkout from GitHub
-- Dependency installation
-- Test execution
-- Docker image build
-- Future deployment stages
 
 ---
 
@@ -590,6 +664,7 @@ Planned improvements include:
 - Add Terraform deployment for AWS or GCP
 - Add Ansible playbook for homelab deployment
 - Add CI/CD deployment workflow
+- Add Jenkins SCM configuration fix so Jenkins can read the `Jenkinsfile` directly from GitHub without using an inline script workaround
 - Add mobile UI improvements
 - Add dark mode
 - Add CSV export
@@ -631,8 +706,10 @@ A short demo flow:
 10. Show the Docker publish workflow.
 11. Show the published GitHub Container Registry package.
 12. Run the app from the published GHCR image.
-13. Explain Docker Compose support.
-14. Explain future DevOps expansion with Jenkins, Ansible, Kubernetes, Terraform, Prometheus, and Grafana.
+13. Show Docker Compose support.
+14. Show the Jenkins pipeline success screen.
+15. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
+16. Explain future DevOps expansion with Ansible, Kubernetes, Terraform, Prometheus, and Grafana.
 ```
 
 ---
@@ -653,6 +730,8 @@ This project demonstrates:
 - GitHub Actions CI
 - GitHub Container Registry publishing
 - Docker image pull and run testing
+- Jenkins local CI pipeline setup
+- Jenkins Docker build and smoke testing
 - Basic automated testing
 - DevOps project structuring
 - Infrastructure as Code planning
