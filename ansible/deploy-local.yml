@@ -1,8 +1,84 @@
 - name: Deploy Job Scraper Service locally
   hosts: localhost
   connection: local
+  gather_facts: false
+
+  vars:
+    project_dir: "{{ playbook_dir }}/.."
+    app_url: "http://127.0.0.1:8000/health"
+
   tasks:
-    - name: Ensure Docker Compose stack is running
+    - name: Check Docker is installed
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Show Docker version
+      ansible.builtin.debug:
+        msg: "{{ docker_version.stdout }}"
+
+    - name: Check Docker Compose is available
+      ansible.builtin.command: docker compose version
+      register: compose_version
+      changed_when: false
+
+    - name: Show Docker Compose version
+      ansible.builtin.debug:
+        msg: "{{ compose_version.stdout }}"
+
+    - name: Check project directory exists
+      ansible.builtin.stat:
+        path: "{{ project_dir }}"
+      register: project_directory
+
+    - name: Fail if project directory does not exist
+      ansible.builtin.fail:
+        msg: "Project directory was not found at {{ project_dir }}"
+      when: not project_directory.stat.exists
+
+    - name: Check .env file exists
+      ansible.builtin.stat:
+        path: "{{ project_dir }}/.env"
+      register: env_file
+
+    - name: Fail if .env file is missing
+      ansible.builtin.fail:
+        msg: ".env file is missing. Create it from .env.example before deployment."
+      when: not env_file.stat.exists
+
+    - name: Stop existing Docker Compose stack
+      ansible.builtin.command: docker compose down
+      args:
+        chdir: "{{ project_dir }}"
+      changed_when: true
+
+    - name: Build and start Docker Compose stack
       ansible.builtin.command: docker compose up -d --build
       args:
-        chdir: "{{ playbook_dir }}/.."
+        chdir: "{{ project_dir }}"
+      changed_when: true
+
+    - name: Show running containers
+      ansible.builtin.command: docker compose ps
+      args:
+        chdir: "{{ project_dir }}"
+      register: compose_ps
+      changed_when: false
+
+    - name: Display Docker Compose status
+      ansible.builtin.debug:
+        msg: "{{ compose_ps.stdout_lines }}"
+
+    - name: Wait for application health endpoint
+      ansible.builtin.uri:
+        url: "{{ app_url }}"
+        method: GET
+        status_code: 200
+      register: health_check
+      retries: 10
+      delay: 3
+      until: health_check.status == 200
+
+    - name: Show deployment success message
+      ansible.builtin.debug:
+        msg: "Job Scraper Service deployed successfully and health check passed."
