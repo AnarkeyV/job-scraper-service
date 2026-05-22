@@ -13,6 +13,82 @@ from app.providers.base import JobProvider
 
 JORA_BASE_URL = "https://sg.jora.com"
 
+GENERIC_JOB_TERMS = {
+    "engineer",
+    "developer",
+    "specialist",
+    "associate",
+    "executive",
+    "manager",
+    "junior",
+    "senior",
+    "intern",
+    "internship",
+    "entry",
+    "level",
+    "trainee",
+    "graduate",
+    "assistant",
+    "officer",
+}
+
+
+def _meaningful_query_tokens(query: str) -> list[str]:
+    tokens = re.findall(r"[a-zA-Z0-9+#]+", query.lower())
+
+    meaningful = [
+        token
+        for token in tokens
+        if len(token) >= 3 and token not in GENERIC_JOB_TERMS
+    ]
+
+    return meaningful or tokens
+
+
+def _is_relevant_title(title: str, query: str) -> bool:
+    title_lower = title.lower()
+    query_lower = query.lower()
+    meaningful_tokens = _meaningful_query_tokens(query)
+
+    if any(token in title_lower for token in meaningful_tokens):
+        return True
+
+    if "devops" in query_lower:
+        devops_title_patterns = [
+            "devops",
+            "cloud engineer",
+            "cloud support",
+            "platform engineer",
+            "infrastructure engineer",
+            "site reliability",
+            "sre",
+            "build engineer",
+            "release engineer",
+            "deployment engineer",
+            "systems engineer",
+            "linux engineer",
+        ]
+
+        blocked_generic_patterns = [
+            "software engineer",
+            "frontend",
+            "front-end",
+            "backend",
+            "back-end",
+            "full stack",
+            "fullstack",
+            "computer vision",
+            "mobile developer",
+            "application developer",
+        ]
+
+        if any(blocked in title_lower for blocked in blocked_generic_patterns):
+            return False
+
+        return any(pattern in title_lower for pattern in devops_title_patterns)
+
+    return False
+
 
 def _build_jora_url(query: str) -> str:
     """
@@ -119,16 +195,52 @@ def _extract_company_and_location(card_text_lines: list[str], title: str) -> tup
 
     filtered = []
     for line in cleaned_lines:
-        if line.lower() in {"new to you", "save"}:
+        line_lower = line.lower()
+
+        if line_lower in {"new to you", "save"}:
             continue
+
         if line == title:
             continue
+
         if line.startswith("Posted "):
             continue
+
+        # Skip company rating values such as 3.7, 4.0, 5.0
+        if re.fullmatch(r"\d(?:\.\d)?", line):
+            continue
+
+        # Skip short rating-style fragments
+        if "rating" in line_lower:
+            continue
+
         filtered.append(line)
 
     company = filtered[0] if len(filtered) >= 1 else "Unknown company"
-    location = filtered[1] if len(filtered) >= 2 else "Singapore"
+
+    location_candidates = [
+        line for line in filtered[1:]
+        if any(place in line.lower() for place in [
+            "singapore",
+            "central",
+            "east",
+            "west",
+            "north",
+            "south",
+            "remote",
+            "hybrid",
+            "jurong",
+            "tampines",
+            "changi",
+            "woodlands",
+            "ang mo kio",
+            "raffles",
+            "paya lebar",
+            "one-north",
+        ])
+    ]
+
+    location = location_candidates[0] if location_candidates else "Singapore"
 
     return company, location
 
@@ -206,6 +318,9 @@ class JoraSGProvider(JobProvider):
             href = title_link.get("href", "")
 
             if not title or not href:
+                continue
+
+            if not _is_relevant_title(title, query):
                 continue
 
             job_url = urljoin(JORA_BASE_URL, href)
