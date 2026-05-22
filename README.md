@@ -31,6 +31,7 @@ The application is designed to be lightweight enough to run on a local machine, 
 - Email delivery using SMTP
 - Docker Compose support
 - GitHub Actions CI workflow
+- GitHub Container Registry image publishing
 - Jenkins pipeline starter file
 - Ansible local deployment starter
 - Kubernetes deployment starter
@@ -51,8 +52,10 @@ The current working MVP supports:
 - Sending the report by email
 - Running locally with Python
 - Running with Docker Compose
+- Running directly from the published GitHub Container Registry image
 - Passing local `pytest` tests
 - Passing GitHub Actions CI
+- Publishing a Docker image to GitHub Container Registry on release
 
 ---
 
@@ -73,6 +76,7 @@ The current working MVP supports:
 - Git
 - GitHub
 - GitHub Actions
+- GitHub Container Registry
 - Docker
 - Docker Compose
 - Jenkins
@@ -95,6 +99,8 @@ The project showcases:
 - Running the app locally and inside Docker
 - Using Git and GitHub for version control
 - Running automated tests through GitHub Actions
+- Publishing a container image to GitHub Container Registry
+- Running the app from a published Docker image
 - Preparing deployment paths for Docker, Kubernetes, Ansible, and Terraform
 - Designing a project that can later be hosted on a personal homelab or cloud platform
 
@@ -169,11 +175,14 @@ job-scraper-service/
 │   └── test_health.py
 ├── ansible/
 ├── docs/
+│   └── images/
 ├── k8s/
 ├── monitoring/
 ├── terraform/
 ├── .github/
 │   └── workflows/
+│       ├── ci.yml
+│       └── docker-publish.yml
 ├── Dockerfile
 ├── docker-compose.yml
 ├── Jenkinsfile
@@ -185,16 +194,44 @@ job-scraper-service/
 
 ---
 
+## Screenshots
+
+Screenshots are stored in:
+
+```text
+docs/images/
+```
+
+Suggested screenshots included in the repository:
+
+```text
+docs/images/landing-page.png
+docs/images/job-report.png
+docs/images/email-report.png
+docs/images/github-actions.png
+docs/images/docker-compose.png
+```
+
+Example Markdown image references:
+
+```markdown
+![Landing Page](docs/images/landing-page.png)
+![Job Report](docs/images/job-report.png)
+![Email Report](docs/images/email-report.png)
+![GitHub Actions](docs/images/github-actions.png)
+![Docker Compose](docs/images/docker-compose.png)
+```
+
+---
+
 ## Local Setup
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/job-scraper-service.git
+git clone https://github.com/anarkeyv/job-scraper-service.git
 cd job-scraper-service
 ```
-
-Replace `YOUR_USERNAME` with your actual GitHub username.
 
 ---
 
@@ -285,6 +322,35 @@ docker compose down
 
 ---
 
+## Running from GitHub Container Registry
+
+This project can also be run directly from the published GitHub Container Registry image.
+
+Pull the image:
+
+```bash
+docker pull ghcr.io/anarkeyv/job-scraper-service:latest
+```
+
+Run the container using your local `.env` file:
+
+```bash
+docker run --rm \
+  --env-file .env \
+  -p 8000:8000 \
+  ghcr.io/anarkeyv/job-scraper-service:latest
+```
+
+Open the application:
+
+```text
+http://127.0.0.1:8000
+```
+
+This confirms that the application can run from a published container image without rebuilding from source.
+
+---
+
 ## Running Tests
 
 Run:
@@ -345,6 +411,38 @@ This helps ensure the application remains stable when changes are pushed to GitH
 
 ---
 
+## GitHub Container Registry
+
+This repository includes a Docker publishing workflow.
+
+The workflow is triggered when a GitHub Release is published.
+
+Workflow summary:
+
+```text
+Create GitHub Release
+        ↓
+GitHub Actions starts Docker publish workflow
+        ↓
+Login to GitHub Container Registry
+        ↓
+Build Docker image
+        ↓
+Push image to ghcr.io
+        ↓
+Image becomes available as a GitHub Package
+```
+
+Published image:
+
+```text
+ghcr.io/anarkeyv/job-scraper-service:latest
+```
+
+This allows the application to be pulled and run as a container image.
+
+---
+
 ## Docker
 
 Docker is included so that the project can run consistently across different machines.
@@ -356,6 +454,14 @@ This is useful for:
 - Cloud VM deployment
 - CI/CD pipelines
 - Future Kubernetes deployment
+
+The application has been tested in the following ways:
+
+```text
+Local Python virtual environment
+Docker Compose
+Published GHCR Docker image
+```
 
 ---
 
@@ -522,8 +628,11 @@ A short demo flow:
 7. Open the report from the email.
 8. Show the GitHub repository.
 9. Show the passing GitHub Actions workflow.
-10. Explain Docker Compose support.
-11. Explain future DevOps expansion with Jenkins, Ansible, Kubernetes, Terraform, Prometheus, and Grafana.
+10. Show the Docker publish workflow.
+11. Show the published GitHub Container Registry package.
+12. Run the app from the published GHCR image.
+13. Explain Docker Compose support.
+14. Explain future DevOps expansion with Jenkins, Ansible, Kubernetes, Terraform, Prometheus, and Grafana.
 ```
 
 ---
@@ -542,6 +651,8 @@ This project demonstrates:
 - Docker Compose orchestration
 - Git and GitHub workflow
 - GitHub Actions CI
+- GitHub Container Registry publishing
+- Docker image pull and run testing
 - Basic automated testing
 - DevOps project structuring
 - Infrastructure as Code planning
