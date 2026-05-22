@@ -1,305 +1,563 @@
 # Job Scraper Service
 
-A local-first job data scraping and reporting website built as a DevOps portfolio project. Users can create scheduled job alerts, choose job sources, countries, work mode, posting age, scan frequency, and email report frequency. The app scans in the background, stores results in SQLite, and generates a mobile-friendly HTML report with direct job links.
+A lightweight, local-first job alert web application that allows users to create job search subscriptions, scan selected job sources, generate mobile-friendly HTML reports, and send the results by email.
 
-> Portfolio positioning: this project demonstrates Python FastAPI, Docker, GitHub Actions, Jenkins, monitoring with Prometheus/Grafana, Ansible, Kubernetes manifests, and Terraform starter folders for AWS/GCP.
+This project was built as a DevOps-focused portfolio project. The goal is not only to create a working job scraper, but also to demonstrate practical skills in application development, Docker, CI/CD, automation, monitoring, infrastructure planning, and future homelab deployment.
 
 ---
 
-## Features
+## Project Overview
 
-- Landing page form for job alert creation
-- Main and alternate job search terms
-- Posted-within filter: 2 weeks, 1 month, or 2 months
-- User email field for report delivery
-- Report frequency: once or twice per day
-- Scraper scan frequency capped at 3 times per day
-- Source selection: Remotive, Arbeitnow, RemoteOK, Mock demo provider
-- Country filtering and work mode filtering
-- SQLite persistence for local lightweight usage
-- Mobile-friendly HTML report page
-- Email preview fallback when SMTP is not configured
-- Docker Compose local setup
-- Prometheus metrics endpoint at `/metrics`
+Job Scraper Service helps users track job postings based on their preferred job title, alternative job title, country, work arrangement, job source, and scan/report frequency.
+
+A user can submit a job alert through the web form. The application then saves the subscription, scans the selected job sources, generates a clean HTML job report, and emails the report link to the user.
+
+The application is designed to be lightweight enough to run on a local machine, small homelab server, or cloud VM.
+
+---
+
+## Key Features
+
+- Web landing page for creating job search alerts
+- User-defined primary and alternative job titles
+- Country and work arrangement filtering
+- Remote, hybrid, or flexible work preference options
+- Configurable job source selection
+- Responsible scan frequency control
+- Maximum recommended scan frequency: no more than 3 times per day
+- SQLite database for local persistence
+- HTML job report generation
+- Mobile-friendly report layout
+- Email delivery using SMTP
+- Docker Compose support
 - GitHub Actions CI workflow
-- Jenkins pipeline file
-- Ansible local deployment playbook
-- Kubernetes starter manifest
+- Jenkins pipeline starter file
+- Ansible local deployment starter
+- Kubernetes deployment starter
 - Terraform starter folders for AWS and GCP
+- Prometheus and Grafana monitoring starter setup
 
 ---
 
-## Why this design?
+## Current MVP Status
 
-This MVP avoids heavy browser automation such as Selenium or Playwright. That keeps the app lighter for local machines and reduces the chance of being blocked by job portals. The code uses a provider pattern so future sources can be added one file at a time.
+The current working MVP supports:
 
-The scraper is intentionally scheduled only a few times per day. This is better for a homelab project because it uses fewer resources, avoids noisy traffic, and behaves more responsibly toward external sites.
-
----
-
-## Architecture
-
-```text
-User Browser
-    |
-    v
-FastAPI Landing Page ---- SQLite database
-    |                          |
-    |                          v
-    |                    Stored subscriptions
-    |
-    v
-APScheduler background scans
-    |
-    v
-Job Provider Plugins -> Remotive / Arbeitnow / RemoteOK / Mock
-    |
-    v
-Deduplicated job_results table
-    |
-    v
-HTML Report Generator -> /reports/{report_id}
-    |
-    v
-Email Sender or local email preview
-```
+- Creating a job alert from the website
+- Saving the subscription into SQLite
+- Running a job scan
+- Saving job results
+- Generating an HTML report
+- Sending the report by email
+- Running locally with Python
+- Running with Docker Compose
+- Passing local `pytest` tests
+- Passing GitHub Actions CI
 
 ---
 
 ## Tech Stack
 
-| Area | Tool |
-|---|---|
-| Backend | FastAPI |
-| Templates | Jinja2 |
-| Database | SQLite |
-| Scheduler | APScheduler |
-| HTTP Client | HTTPX |
-| Container | Docker |
-| Local orchestration | Docker Compose |
-| CI | GitHub Actions |
-| Alternative CI/CD | Jenkins |
-| Config management | Ansible |
-| Infrastructure as Code | Terraform starter folders |
-| Kubernetes | Starter deployment and service YAML |
-| Monitoring | Prometheus + Grafana |
+### Application
+
+- Python
+- FastAPI
+- Jinja2
+- SQLite
+- APScheduler
+- SMTP email sending
+- HTML/CSS
+
+### DevOps and Infrastructure
+
+- Git
+- GitHub
+- GitHub Actions
+- Docker
+- Docker Compose
+- Jenkins
+- Ansible
+- Kubernetes
+- Terraform
+- Prometheus
+- Grafana
 
 ---
 
-## Quick Start: Local Python
+## Why This Project Was Built
 
-```bash
-# 1. Clone your repository
- git clone https://github.com/YOUR_USERNAME/job-scraper-service.git
- cd job-scraper-service
+This project was created to demonstrate practical Cloud Support and DevOps engineering skills through a realistic use case.
 
-# 2. Create virtual environment
- python3 -m venv .venv
- source .venv/bin/activate
+The project showcases:
 
-# 3. Install dependencies
- pip install -r requirements.txt
+- Building and running a web application
+- Managing application configuration through environment variables
+- Running the app locally and inside Docker
+- Using Git and GitHub for version control
+- Running automated tests through GitHub Actions
+- Preparing deployment paths for Docker, Kubernetes, Ansible, and Terraform
+- Designing a project that can later be hosted on a personal homelab or cloud platform
 
-# 4. Create environment file
- cp .env.example .env
+---
 
-# 5. Run the app
- uvicorn app.main:app --reload
-```
-
-Open:
+## Application Flow
 
 ```text
-http://localhost:8000
+User opens website
+        ↓
+User submits job search alert
+        ↓
+Application saves subscription into SQLite
+        ↓
+Background scan runs
+        ↓
+Job results are collected
+        ↓
+HTML report is generated
+        ↓
+Email is sent to the user
+        ↓
+User opens the report link from email
 ```
 
 ---
 
-## Quick Start: Docker Compose
+## Example Use Case
+
+A user may submit the following search:
+
+```text
+Job looking for: Entry Level DevOps Engineer
+Alternate job: Intern DevOps Engineer
+Country: Singapore
+Work arrangement: Remote or Hybrid
+Job posted duration: Within the past 1 month
+Report frequency: Once a day
+Scan frequency: Once a day
+Email: user@example.com
+```
+
+The system will then scan the selected sources, generate a job report, and email the result to the user.
+
+---
+
+## Project Structure
+
+```text
+job-scraper-service/
+├── app/
+│   ├── main.py
+│   ├── config.py
+│   ├── db.py
+│   ├── models.py
+│   ├── scheduler.py
+│   ├── services.py
+│   ├── providers/
+│   │   ├── base.py
+│   │   ├── mock.py
+│   │   ├── remotive.py
+│   │   ├── arbeitnow.py
+│   │   ├── remoteok.py
+│   │   └── registry.py
+│   ├── static/
+│   │   └── styles.css
+│   └── templates/
+│       ├── index.html
+│       └── report.html
+├── tests/
+│   ├── conftest.py
+│   └── test_health.py
+├── ansible/
+├── docs/
+├── k8s/
+├── monitoring/
+├── terraform/
+├── .github/
+│   └── workflows/
+├── Dockerfile
+├── docker-compose.yml
+├── Jenkinsfile
+├── requirements.txt
+├── .env.example
+├── .gitignore
+└── README.md
+```
+
+---
+
+## Local Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/job-scraper-service.git
+cd job-scraper-service
+```
+
+Replace `YOUR_USERNAME` with your actual GitHub username.
+
+---
+
+### 2. Create a Virtual Environment
+
+```bash
+python3 -m venv .venv
+```
+
+Activate the virtual environment:
+
+```bash
+source .venv/bin/activate
+```
+
+---
+
+### 3. Install Dependencies
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+---
+
+### 4. Create the Environment File
+
+Copy the example environment file:
 
 ```bash
 cp .env.example .env
-docker compose up -d --build
 ```
 
-Open:
+Open `.env` and update the required values.
 
-```text
-http://localhost:8000
-```
-
-Stop:
-
-```bash
-docker compose down
-```
-
----
-
-## Run with Monitoring
-
-```bash
-docker compose --profile monitoring up -d --build
-```
-
-Open:
-
-```text
-App:        http://localhost:8000
-Prometheus: http://localhost:9090
-Grafana:    http://localhost:3000
-```
-
-Default Grafana login is usually `admin/admin` unless you configure another password.
-
----
-
-## Email Setup
-
-The app works without SMTP. If SMTP is not configured, it writes a local preview file:
-
-```text
-reports/email_preview.html
-```
-
-To send real emails, edit `.env`:
+Example:
 
 ```env
-PUBLIC_BASE_URL=http://localhost:8000
-SMTP_HOST=smtp.example.com
+APP_BASE_URL=http://127.0.0.1:8000
+
+SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USERNAME=your_username
-SMTP_PASSWORD=your_password
-SMTP_FROM=your_email@example.com
+SMTP_USERNAME=your_email@gmail.com
+SMTP_PASSWORD=your_gmail_app_password
+SMTP_FROM=your_email@gmail.com
 ```
 
-For Gmail, use an App Password rather than your normal account password.
+Important: do not use your normal Gmail password. Use a Gmail App Password.
 
 ---
 
-## Important Localhost Note
-
-If the report email contains `http://localhost:8000/reports/...`, that link only works on the same machine running the app. For access from your phone or another device, set `PUBLIC_BASE_URL` to a reachable URL such as:
-
-```env
-PUBLIC_BASE_URL=http://192.168.1.50:8000
-```
-
-For public access later, use a domain name, reverse proxy, Cloudflare Tunnel, AWS, or GCP.
-
----
-
-## Manual Scan
-
-After creating an alert, you can manually trigger a scan:
+### 5. Run the Application Locally
 
 ```bash
-curl -X POST http://localhost:8000/api/run/1
+uvicorn app.main:app
 ```
 
-Replace `1` with the subscription ID shown on the home page.
-
----
-
-## Adding a New Job Provider
-
-Create a new file in:
+Open the application in your browser:
 
 ```text
-app/providers/my_provider.py
-```
-
-Implement the provider class:
-
-```python
-from app.providers.base import JobProvider
-from app.models import JobResult
-
-class MyProvider(JobProvider):
-    name = "my_provider"
-
-    async def search(self, query: str, countries: list[str], work_mode: str, max_age_days: int):
-        return [
-            JobResult(
-                title="Example DevOps Engineer",
-                company="Example Company",
-                source="My Provider",
-                location="Singapore",
-                work_mode="Hybrid",
-                posted_at="2026-05-22",
-                url="https://example.com/job"
-            )
-        ]
-```
-
-Then register it in:
-
-```text
-app/providers/registry.py
+http://127.0.0.1:8000
 ```
 
 ---
 
-## Responsible Scraping Rules
+## Running with Docker Compose
 
-- Prefer official APIs, RSS feeds, or public JSON endpoints.
-- Respect each website's Terms of Service and robots.txt.
-- Keep frequency low. This app caps scans at 3 times per day.
-- Use a clear User-Agent where possible.
-- Deduplicate results so the same job is not repeatedly emailed.
-- Do not scrape behind logins unless the website explicitly allows it.
+Make sure Docker Desktop is running.
 
----
-
-## DevOps Showcase Roadmap
-
-### Weekend MVP
-
-- Build FastAPI app
-- Run locally with Docker Compose
-- Add GitHub Actions CI
-- Generate first report
-- Commit to public GitHub repo
-
-### After MVP
-
-- Add authentication for users
-- Add unsubscribe/pause alerts
-- Add Cloudflare Tunnel or reverse proxy
-- Add Grafana dashboard JSON
-- Deploy to AWS Lightsail, ECS, or GCP Cloud Run
-- Convert SQLite to Postgres for multi-user deployment
-- Add queue-based worker using Redis/RQ or Celery if scale increases
-
----
-
-## Commands Checklist
+Build and start the application:
 
 ```bash
-# Start app locally
-uvicorn app.main:app --reload
+docker compose up --build
+```
 
-# Start with Docker
-docker compose up -d --build
+Open:
 
-# View logs
-docker compose logs -f job-scraper
+```text
+http://127.0.0.1:8000
+```
 
-# Run tests
-pytest
+Stop the containers:
 
-# Lint
-ruff check app tests
-
-# Start with monitoring
-docker compose --profile monitoring up -d --build
-
-# Stop everything
+```bash
 docker compose down
 ```
+
+---
+
+## Running Tests
+
+Run:
+
+```bash
+pytest
+```
+
+Expected result:
+
+```text
+1 passed
+```
+
+Or, if needed:
+
+```bash
+python -m pytest
+```
+
+---
+
+## Email Setup Notes
+
+This project uses SMTP for sending job reports by email.
+
+For Gmail:
+
+1. Enable 2-Step Verification on your Google Account.
+2. Create a Gmail App Password.
+3. Use the generated app password in `.env`.
+4. Do not commit `.env` to GitHub.
+
+The `.gitignore` file should exclude:
+
+```gitignore
+.env
+.venv/
+data/
+reports/
+__pycache__/
+.pytest_cache/
+```
+
+---
+
+## GitHub Actions
+
+This repository includes a GitHub Actions workflow to run basic CI checks.
+
+The workflow is intended to:
+
+- Install Python dependencies
+- Run automated tests
+- Confirm the application can be imported successfully
+
+This helps ensure the application remains stable when changes are pushed to GitHub.
+
+---
+
+## Docker
+
+Docker is included so that the project can run consistently across different machines.
+
+This is useful for:
+
+- Local development
+- Homelab deployment
+- Cloud VM deployment
+- CI/CD pipelines
+- Future Kubernetes deployment
+
+---
+
+## Jenkins
+
+A `Jenkinsfile` is included as a starter pipeline.
+
+This can be used later to demonstrate:
+
+- Pipeline as Code
+- Checkout from GitHub
+- Dependency installation
+- Test execution
+- Docker image build
+- Future deployment stages
+
+---
+
+## Ansible
+
+The `ansible/` folder is included as a starter for local or server deployment automation.
+
+Possible future uses:
+
+- Install required packages
+- Copy application files
+- Start Docker Compose services
+- Configure a homelab VM
+- Automate repeatable deployment steps
+
+---
+
+## Kubernetes
+
+The `k8s/` folder is included as a starter for container orchestration.
+
+Possible future uses:
+
+- Deploy the FastAPI app to a Kubernetes cluster
+- Expose the app with a Service
+- Add ConfigMaps and Secrets
+- Add health checks
+- Prepare for homelab Kubernetes or cloud Kubernetes deployment
+
+---
+
+## Terraform
+
+The `terraform/` folder includes starter folders for AWS and GCP.
+
+Possible future uses:
+
+- Provision a small VM
+- Set up networking
+- Create firewall rules
+- Prepare infrastructure for the app
+- Demonstrate Infrastructure as Code
+
+---
+
+## Monitoring
+
+The `monitoring/` folder includes a starter setup for Prometheus and Grafana.
+
+Possible future improvements:
+
+- Add application metrics endpoint
+- Monitor uptime
+- Monitor scan frequency
+- Monitor email success/failure count
+- Create Grafana dashboards
+- Add alerting rules
+
+---
+
+## Responsible Scraping Approach
+
+This project is designed to avoid aggressive scraping.
+
+The intended rules are:
+
+- Do not scan more than 3 times per day.
+- Prefer public APIs or lightweight sources when available.
+- Avoid heavy browser automation unless absolutely necessary.
+- Respect robots.txt and website terms where applicable.
+- Avoid scraping sites that explicitly disallow automated access.
+- Add rate limiting when adding more providers.
+- Cache and deduplicate results where possible.
+
+This keeps the project lightweight and reduces the risk of being blocked by job portals.
+
+---
+
+## Current Limitations
+
+The current version is an MVP and may not include all production features.
+
+Known limitations:
+
+- SQLite is used for local storage.
+- Email delivery depends on SMTP configuration.
+- Some job sources may require provider-specific logic.
+- Full user authentication is not included.
+- Report hosting is local unless deployed to a public server.
+- The app is not yet production-hardened.
+- Kubernetes, Terraform, Ansible, Jenkins, and monitoring are included as starter DevOps components but can be expanded further.
+
+---
+
+## Future Improvements
+
+Planned improvements include:
+
+- Add user authentication
+- Add subscription management page
+- Add unsubscribe link
+- Add more job providers
+- Add deduplication improvements
+- Add PostgreSQL support
+- Add proper background worker with Celery or RQ
+- Add API documentation page
+- Add Prometheus metrics endpoint
+- Add Grafana dashboard
+- Add production Docker image publishing
+- Add Kubernetes secrets and config maps
+- Add Terraform deployment for AWS or GCP
+- Add Ansible playbook for homelab deployment
+- Add CI/CD deployment workflow
+- Add mobile UI improvements
+- Add dark mode
+- Add CSV export
+- Add PDF report export
+
+---
+
+## Security Notes
+
+Do not commit secrets to GitHub.
+
+The following files and folders should not be committed:
+
+```text
+.env
+.venv/
+data/
+reports/
+```
+
+Use `.env.example` to show required configuration values without exposing real credentials.
+
+---
+
+## Suggested Demo Script
+
+A short demo flow:
+
+```text
+1. Open the website.
+2. Explain the purpose of the job scraper.
+3. Create a new job alert.
+4. Show that the alert is saved.
+5. Show the generated HTML report.
+6. Show the email received.
+7. Open the report from the email.
+8. Show the GitHub repository.
+9. Show the passing GitHub Actions workflow.
+10. Explain Docker Compose support.
+11. Explain future DevOps expansion with Jenkins, Ansible, Kubernetes, Terraform, Prometheus, and Grafana.
+```
+
+---
+
+## Skills Demonstrated
+
+This project demonstrates:
+
+- Python web development
+- FastAPI routing
+- HTML template rendering
+- SQLite database usage
+- Background job execution
+- SMTP email configuration
+- Docker containerization
+- Docker Compose orchestration
+- Git and GitHub workflow
+- GitHub Actions CI
+- Basic automated testing
+- DevOps project structuring
+- Infrastructure as Code planning
+- Monitoring planning
+- Homelab deployment planning
 
 ---
 
 ## License
 
-MIT License. Use this project for learning, portfolio demonstrations, and responsible job-alert automation.
+This project is intended for learning, portfolio demonstration, and local personal use.
+
+Before deploying publicly or scraping third-party sites, review the terms of service of each data source.
+
+---
+
+## Author
+
+Created as a Cloud Support and DevOps portfolio project.
