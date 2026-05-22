@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Job Report</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="hero compact">
+      <p class="eyebrow">Generated {{ generated_at }}</p>
+      <h1>Job Report</h1>
+      <p><strong>Search:</strong> {{ subscription.main_query }}{% if subscription.alternate_query %} / {{ subscription.alternate_query }}{% endif %}</p>
+    </section>
+    <section class="card">
+      <h2>{{ jobs|length }} matching jobs</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Job posting</th><th>Company</th><th>Source</th><th>Location</th><th>Mode</th><th>Posted</th><th>Link</th></tr>
+          </thead>
+          <tbody>
+          {% for job in jobs %}
+            <tr>
+              <td>{{ job.title }}</td>
+              <td>{{ job.company }}</td>
+              <td>{{ job.source }}</td>
+              <td>{{ job.location }}</td>
+              <td>{{ job.work_mode }}</td>
+              <td>{{ job.posted_at }}</td>
+              <td><a href="{{ job.url }}" target="_blank" rel="noopener">Open</a></td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

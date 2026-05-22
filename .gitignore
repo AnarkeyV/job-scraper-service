@@ -1,0 +1,44 @@
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local database and generated reports
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+reports/*.html
+
+# Logs
+*.log
+logs/
+
+# OS / editor files
+.DS_Store
+.vscode/
+.idea/
+
+# Docker local files
+docker-compose.override.yml
+
+# Coverage
+.coverage
+htmlcov/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

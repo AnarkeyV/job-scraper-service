@@ -1,0 +1,8 @@
+- name: Deploy Job Scraper Service locally
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Ensure Docker Compose stack is running
+      ansible.builtin.command: docker compose up -d --build
+      args:
+        chdir: "{{ playbook_dir }}/.."

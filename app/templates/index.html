@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Job Scraper Service</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">Local-first DevOps portfolio project</p>
+      <h1>Job Scraper Service</h1>
+      <p>Create a scheduled job search, scan up to 3 times daily, and receive a mobile-friendly HTML report by email.</p>
+    </section>
+
+    <section class="card">
+      <h2>Create job alert</h2>
+      <form method="post" action="/subscribe" class="grid-form">
+        <label>Main job search
+          <input name="main_query" required placeholder="Entry Level DevOps Engineer" />
+        </label>
+        <label>Alternate job search
+          <input name="alternate_query" placeholder="Intern DevOps Engineer" />
+        </label>
+        <label>Email
+          <input name="email" type="email" required placeholder="you@example.com" />
+        </label>
+        <label>Posted within
+          <select name="posted_within_days">
+            <option value="14">Past 2 weeks</option>
+            <option value="30" selected>Past 1 month</option>
+            <option value="60">Past 2 months</option>
+          </select>
+        </label>
+        <label>Report email frequency
+          <select name="report_frequency">
+            <option value="daily" selected>Once a day</option>
+            <option value="twice_daily">Twice a day</option>
+          </select>
+        </label>
+        <label>Scraper scan frequency
+          <select name="scan_frequency">
+            <option value="1">Once a day</option>
+            <option value="2">Twice a day</option>
+            <option value="3">Three times a day maximum</option>
+          </select>
+        </label>
+        <label>Countries, comma separated
+          <input name="countries" placeholder="Singapore, Malaysia, Remote" />
+        </label>
+        <label>Work mode
+          <select name="work_mode">
+            <option value="remote">Remote</option>
+            <option value="hybrid">Hybrid / On-site</option>
+            <option value="both" selected>Remote or Hybrid</option>
+          </select>
+        </label>
+        <fieldset class="full">
+          <legend>Sources</legend>
+          <label class="check"><input type="checkbox" name="providers" value="remotive" checked /> Remotive</label>
+          <label class="check"><input type="checkbox" name="providers" value="arbeitnow" checked /> Arbeitnow</label>
+          <label class="check"><input type="checkbox" name="providers" value="remoteok" /> RemoteOK</label>
+          <label class="check"><input type="checkbox" name="providers" value="mock" /> Mock demo source</label>
+        </fieldset>
+        <button class="full" type="submit">Create alert and run first scan</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Existing alerts</h2>
+      {% if subscriptions %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Search</th><th>Email</th><th>Frequency</th><th>Created</th></tr></thead>
+          <tbody>
+          {% for sub in subscriptions %}
+            <tr><td>{{ sub.id }}</td><td>{{ sub.main_query }}</td><td>{{ sub.email }}</td><td>{{ sub.scan_frequency }}/day</td><td>{{ sub.created_at }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p>No alerts created yet.</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>
