@@ -2,7 +2,7 @@
 
 A lightweight, local-first job alert web application that allows users to create job search subscriptions, scan selected job sources, generate mobile-friendly HTML reports, and send the results by email.
 
-This project was built as a DevOps-focused portfolio project. The goal is not only to create a working job scraper, but also to demonstrate practical skills in application development, Docker, CI/CD, automation, monitoring, infrastructure planning, and future homelab deployment.
+This project was built as a DevOps-focused portfolio project. The goal is not only to create a working job scraper, but also to demonstrate practical skills in application development, Docker, CI/CD, automation, monitoring, infrastructure planning, local deployment automation, and future homelab deployment.
 
 ---
 
@@ -36,7 +36,7 @@ The application is designed to be lightweight enough to run on a local machine, 
 - Jenkins local CI pipeline tested successfully
 - Prometheus monitoring support
 - Grafana dashboard/data source support
-- Ansible local deployment starter
+- Ansible local deployment automation
 - Kubernetes deployment starter
 - Terraform starter folders for AWS and GCP
 
@@ -63,6 +63,18 @@ The current working MVP supports:
 - Running Prometheus and Grafana through Docker Compose
 - Confirming Prometheus target status as `UP`
 - Confirming Grafana is connected to Prometheus as a data source
+- Running an Ansible playbook to automate local Docker Compose deployment and health validation
+
+---
+
+## Release History
+
+```text
+v0.1.0  Initial working MVP
+v0.2.0  Jenkins CI pipeline added
+v0.3.0  Monitoring with Prometheus and Grafana added
+v0.4.0  Ansible local deployment automation added
+```
 
 ---
 
@@ -110,6 +122,7 @@ The project showcases:
 - Running the app from a published Docker image
 - Running a Jenkins-based local CI pipeline
 - Monitoring the application with Prometheus and Grafana
+- Automating local deployment with Ansible
 - Preparing deployment paths for Docker, Kubernetes, Ansible, and Terraform
 - Designing a project that can later be hosted on a personal homelab or cloud platform
 
@@ -189,6 +202,30 @@ Grafana connects to Prometheus as a data source
 Metrics can be visualized and expanded into dashboards
 ```
 
+Ansible local deployment flow:
+
+```text
+Run Ansible playbook
+        ↓
+Check Docker is installed
+        ↓
+Check Docker Compose is available
+        ↓
+Confirm project directory exists
+        ↓
+Confirm .env file exists
+        ↓
+Stop existing Docker Compose stack
+        ↓
+Build and start Docker Compose stack
+        ↓
+Show running containers
+        ↓
+Validate /health endpoint
+        ↓
+Deployment completes successfully
+```
+
 ---
 
 ## Example Use Case
@@ -237,6 +274,7 @@ job-scraper-service/
 │   ├── conftest.py
 │   └── test_health.py
 ├── ansible/
+│   └── deploy-local.yml
 ├── docs/
 │   └── images/
 ├── k8s/
@@ -308,21 +346,12 @@ git clone https://github.com/anarkeyv/job-scraper-service.git
 cd job-scraper-service
 ```
 
----
-
 ### 2. Create a Virtual Environment
 
 ```bash
 python3 -m venv .venv
-```
-
-Activate the virtual environment:
-
-```bash
 source .venv/bin/activate
 ```
-
----
 
 ### 3. Install Dependencies
 
@@ -331,11 +360,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
----
-
 ### 4. Create the Environment File
-
-Copy the example environment file:
 
 ```bash
 cp .env.example .env
@@ -357,15 +382,13 @@ SMTP_FROM=your_email@gmail.com
 
 Important: do not use your normal Gmail password. Use a Gmail App Password.
 
----
-
 ### 5. Run the Application Locally
 
 ```bash
 uvicorn app.main:app
 ```
 
-Open the application in your browser:
+Open:
 
 ```text
 http://127.0.0.1:8000
@@ -374,10 +397,6 @@ http://127.0.0.1:8000
 ---
 
 ## Running with Docker Compose
-
-Make sure Docker Desktop is running.
-
-Build and start the application:
 
 ```bash
 docker compose up --build
@@ -475,10 +494,7 @@ docker pull ghcr.io/anarkeyv/job-scraper-service:latest
 Run the container using your local `.env` file:
 
 ```bash
-docker run --rm \
-  --env-file .env \
-  -p 8000:8000 \
-  ghcr.io/anarkeyv/job-scraper-service:latest
+docker run --rm   --env-file .env   -p 8000:8000   ghcr.io/anarkeyv/job-scraper-service:latest
 ```
 
 Open the application:
@@ -493,8 +509,6 @@ This confirms that the application can run from a published container image with
 
 ## Running Tests
 
-Run:
-
 ```bash
 pytest
 ```
@@ -505,7 +519,7 @@ Expected result:
 1 passed
 ```
 
-Or, if needed:
+Or:
 
 ```bash
 python -m pytest
@@ -676,6 +690,46 @@ Future monitoring improvements:
 
 ---
 
+## Ansible Local Deployment
+
+The project includes an Ansible playbook for local deployment automation:
+
+```text
+ansible/deploy-local.yml
+```
+
+The playbook is designed to automate the local Docker Compose deployment process.
+
+It performs the following tasks:
+
+- Checks that Docker is installed
+- Shows the Docker version
+- Checks that Docker Compose is available
+- Shows the Docker Compose version
+- Confirms the project directory exists
+- Confirms the `.env` file exists
+- Stops the existing Docker Compose stack
+- Builds and starts the Docker Compose stack
+- Shows running containers
+- Waits for the `/health` endpoint to return HTTP 200
+- Displays a deployment success message
+
+Run the playbook:
+
+```bash
+ansible-playbook ansible/deploy-local.yml
+```
+
+Expected final result:
+
+```text
+Job Scraper Service deployed successfully and health check passed.
+```
+
+This demonstrates basic deployment automation and fits a local homelab workflow.
+
+---
+
 ## Docker
 
 Docker is included so that the project can run consistently across different machines.
@@ -696,21 +750,8 @@ Docker Compose
 Docker Compose with monitoring profile
 Published GHCR Docker image
 Jenkins-built Docker image
+Ansible-managed Docker Compose deployment
 ```
-
----
-
-## Ansible
-
-The `ansible/` folder is included as a starter for local or server deployment automation.
-
-Possible future uses:
-
-- Install required packages
-- Copy application files
-- Start Docker Compose services
-- Configure a homelab VM
-- Automate repeatable deployment steps
 
 ---
 
@@ -793,7 +834,7 @@ Planned improvements include:
 - Add Prometheus alert rules
 - Add Kubernetes secrets and config maps
 - Add Terraform deployment for AWS or GCP
-- Add Ansible playbook for homelab deployment
+- Add Ansible playbook for remote homelab deployment
 - Add CI/CD deployment workflow
 - Add Jenkins SCM configuration fix so Jenkins can read the `Jenkinsfile` directly from GitHub without using an inline script workaround
 - Add mobile UI improvements
@@ -842,7 +883,9 @@ A short demo flow:
 15. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
 16. Show Prometheus target status as UP.
 17. Show Grafana connected to Prometheus.
-18. Explain future DevOps expansion with Ansible, Kubernetes, Terraform, dashboards, and alerting.
+18. Run the Ansible local deployment playbook.
+19. Explain the Ansible deployment checks and health validation.
+20. Explain future DevOps expansion with Kubernetes, Terraform, dashboards, alerting, and homelab deployment.
 ```
 
 ---
@@ -868,6 +911,7 @@ This project demonstrates:
 - Jenkins Docker build and smoke testing
 - Prometheus monitoring setup
 - Grafana data source provisioning
+- Ansible local deployment automation
 - Basic automated testing
 - DevOps project structuring
 - Infrastructure as Code planning
