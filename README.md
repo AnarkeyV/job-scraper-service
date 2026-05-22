@@ -34,10 +34,11 @@ The application is designed to be lightweight enough to run on a local machine, 
 - GitHub Container Registry image publishing
 - Jenkins pipeline support
 - Jenkins local CI pipeline tested successfully
+- Prometheus monitoring support
+- Grafana dashboard/data source support
 - Ansible local deployment starter
 - Kubernetes deployment starter
 - Terraform starter folders for AWS and GCP
-- Prometheus and Grafana monitoring starter setup
 
 ---
 
@@ -58,6 +59,10 @@ The current working MVP supports:
 - Passing GitHub Actions CI
 - Publishing a Docker image to GitHub Container Registry on release
 - Running a Jenkins pipeline that clones the repo, builds the Docker image, runs tests, starts a container, and performs a `/health` smoke test
+- Exposing a `/metrics` endpoint for Prometheus
+- Running Prometheus and Grafana through Docker Compose
+- Confirming Prometheus target status as `UP`
+- Confirming Grafana is connected to Prometheus as a data source
 
 ---
 
@@ -82,11 +87,11 @@ The current working MVP supports:
 - Docker
 - Docker Compose
 - Jenkins
+- Prometheus
+- Grafana
 - Ansible
 - Kubernetes
 - Terraform
-- Prometheus
-- Grafana
 
 ---
 
@@ -104,6 +109,7 @@ The project showcases:
 - Publishing a container image to GitHub Container Registry
 - Running the app from a published Docker image
 - Running a Jenkins-based local CI pipeline
+- Monitoring the application with Prometheus and Grafana
 - Preparing deployment paths for Docker, Kubernetes, Ansible, and Terraform
 - Designing a project that can later be hosted on a personal homelab or cloud platform
 
@@ -167,6 +173,22 @@ Test container is removed
 Pipeline finishes successfully
 ```
 
+Monitoring flow:
+
+```text
+Docker Compose starts the application
+        ↓
+Application exposes /metrics
+        ↓
+Prometheus scrapes job-scraper-service:8000
+        ↓
+Prometheus target shows UP
+        ↓
+Grafana connects to Prometheus as a data source
+        ↓
+Metrics can be visualized and expanded into dashboards
+```
+
 ---
 
 ## Example Use Case
@@ -219,6 +241,12 @@ job-scraper-service/
 │   └── images/
 ├── k8s/
 ├── monitoring/
+│   ├── grafana/
+│   │   └── provisioning/
+│   │       └── datasources/
+│   │           └── prometheus.yml
+│   └── prometheus/
+│       └── prometheus.yml
 ├── terraform/
 ├── .github/
 │   └── workflows/
@@ -251,6 +279,9 @@ docs/images/job-report.png
 docs/images/email-report.png
 docs/images/github-actions.png
 docs/images/docker-compose.png
+docs/images/prometheus-target-up.png
+docs/images/grafana-prometheus-datasource.png
+docs/images/grafana-home.png
 ```
 
 Example Markdown image references:
@@ -261,6 +292,9 @@ Example Markdown image references:
 ![Email Report](docs/images/email-report.png)
 ![GitHub Actions](docs/images/github-actions.png)
 ![Docker Compose](docs/images/docker-compose.png)
+![Prometheus Target UP](docs/images/prometheus-target-up.png)
+![Grafana Prometheus Datasource](docs/images/grafana-prometheus-datasource.png)
+![Grafana Home](docs/images/grafana-home.png)
 ```
 
 ---
@@ -359,6 +393,71 @@ Stop the containers:
 
 ```bash
 docker compose down
+```
+
+---
+
+## Running with Docker Compose and Monitoring
+
+To start the application together with Prometheus and Grafana:
+
+```bash
+docker compose --profile monitoring up -d --build
+```
+
+This starts:
+
+```text
+FastAPI app    http://127.0.0.1:8000
+Prometheus     http://127.0.0.1:9090
+Grafana        http://127.0.0.1:3000
+```
+
+Check the app health endpoint:
+
+```text
+http://127.0.0.1:8000/health
+```
+
+Check the app metrics endpoint:
+
+```text
+http://127.0.0.1:8000/metrics
+```
+
+Check Prometheus targets:
+
+```text
+http://127.0.0.1:9090/targets
+```
+
+The `job-scraper-service` target should show as:
+
+```text
+UP
+```
+
+Grafana default login:
+
+```text
+Username: admin
+Password: admin
+```
+
+Grafana is provisioned to connect to Prometheus as a data source.
+
+Stop the full monitoring stack:
+
+```bash
+docker compose --profile monitoring down
+```
+
+If Docker Compose shows a stale network error, clean unused networks and restart:
+
+```bash
+docker compose --profile monitoring down --remove-orphans
+docker network prune
+docker compose --profile monitoring up -d --build
 ```
 
 ---
@@ -531,6 +630,52 @@ This still demonstrates the main Jenkins CI process clearly.
 
 ---
 
+## Monitoring with Prometheus and Grafana
+
+The project includes a monitoring setup using Prometheus and Grafana.
+
+Prometheus configuration:
+
+```text
+monitoring/prometheus/prometheus.yml
+```
+
+Grafana provisioning configuration:
+
+```text
+monitoring/grafana/provisioning/datasources/prometheus.yml
+```
+
+Prometheus is configured to scrape the app through Docker Compose networking:
+
+```text
+job-scraper:8000
+```
+
+Monitoring has been tested successfully:
+
+```text
+Prometheus opened successfully
+Grafana opened successfully
+Grafana connected to Prometheus
+job-scraper-service target showed UP
+/metrics endpoint worked
+```
+
+This provides a foundation for future dashboards and alerting.
+
+Future monitoring improvements:
+
+- Add custom application metrics
+- Track number of job scans
+- Track number of reports generated
+- Track email send success/failure counts
+- Track scrape duration
+- Add Grafana dashboards
+- Add Prometheus alert rules
+
+---
+
 ## Docker
 
 Docker is included so that the project can run consistently across different machines.
@@ -548,6 +693,7 @@ The application has been tested in the following ways:
 ```text
 Local Python virtual environment
 Docker Compose
+Docker Compose with monitoring profile
 Published GHCR Docker image
 Jenkins-built Docker image
 ```
@@ -593,21 +739,6 @@ Possible future uses:
 - Create firewall rules
 - Prepare infrastructure for the app
 - Demonstrate Infrastructure as Code
-
----
-
-## Monitoring
-
-The `monitoring/` folder includes a starter setup for Prometheus and Grafana.
-
-Possible future improvements:
-
-- Add application metrics endpoint
-- Monitor uptime
-- Monitor scan frequency
-- Monitor email success/failure count
-- Create Grafana dashboards
-- Add alerting rules
 
 ---
 
@@ -657,9 +788,9 @@ Planned improvements include:
 - Add PostgreSQL support
 - Add proper background worker with Celery or RQ
 - Add API documentation page
-- Add Prometheus metrics endpoint
-- Add Grafana dashboard
-- Add production Docker image publishing
+- Add richer Prometheus custom metrics
+- Add Grafana dashboards
+- Add Prometheus alert rules
 - Add Kubernetes secrets and config maps
 - Add Terraform deployment for AWS or GCP
 - Add Ansible playbook for homelab deployment
@@ -709,7 +840,9 @@ A short demo flow:
 13. Show Docker Compose support.
 14. Show the Jenkins pipeline success screen.
 15. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
-16. Explain future DevOps expansion with Ansible, Kubernetes, Terraform, Prometheus, and Grafana.
+16. Show Prometheus target status as UP.
+17. Show Grafana connected to Prometheus.
+18. Explain future DevOps expansion with Ansible, Kubernetes, Terraform, dashboards, and alerting.
 ```
 
 ---
@@ -726,16 +859,19 @@ This project demonstrates:
 - SMTP email configuration
 - Docker containerization
 - Docker Compose orchestration
+- Docker Compose profiles
 - Git and GitHub workflow
 - GitHub Actions CI
 - GitHub Container Registry publishing
 - Docker image pull and run testing
 - Jenkins local CI pipeline setup
 - Jenkins Docker build and smoke testing
+- Prometheus monitoring setup
+- Grafana data source provisioning
 - Basic automated testing
 - DevOps project structuring
 - Infrastructure as Code planning
-- Monitoring planning
+- Monitoring and observability planning
 - Homelab deployment planning
 
 ---
