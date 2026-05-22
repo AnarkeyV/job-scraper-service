@@ -2,7 +2,7 @@
 
 A lightweight, local-first job alert web application that allows users to create job search subscriptions, scan selected job sources, generate mobile-friendly HTML reports, and send the results by email.
 
-This project was built as a DevOps-focused portfolio project. The goal is not only to create a working job scraper, but also to demonstrate practical skills in application development, Docker, CI/CD, automation, monitoring, infrastructure planning, local deployment automation, and future homelab deployment.
+This project was built as a DevOps-focused personal portfolio project. The goal is not only to create a working job scraper, but also to demonstrate practical skills in application development, Docker, CI/CD, automation, monitoring, infrastructure planning, local deployment automation, provider-based design, and future homelab deployment.
 
 ---
 
@@ -23,6 +23,7 @@ The application is designed to be lightweight enough to run on a local machine, 
 - Country and work arrangement filtering
 - Remote, hybrid, or flexible work preference options
 - Configurable job source selection
+- Select all / unselect all controls for job sources
 - Responsible scan frequency control
 - Maximum recommended scan frequency: no more than 3 times per day
 - SQLite database for local persistence
@@ -37,6 +38,8 @@ The application is designed to be lightweight enough to run on a local machine, 
 - Prometheus monitoring support
 - Grafana dashboard/data source support
 - Ansible local deployment automation
+- Safe Singapore job portal search-link provider
+- Jora SG real parser provider
 - Kubernetes deployment starter
 - Terraform starter folders for AWS and GCP
 
@@ -64,6 +67,8 @@ The current working MVP supports:
 - Confirming Prometheus target status as `UP`
 - Confirming Grafana is connected to Prometheus as a data source
 - Running an Ansible playbook to automate local Docker Compose deployment and health validation
+- Generating safe search links for major Singapore job portals
+- Parsing Jora SG job listing results for Cloud, DevOps, Platform, Infrastructure, SRE, and related roles
 
 ---
 
@@ -74,6 +79,7 @@ v0.1.0  Initial working MVP
 v0.2.0  Jenkins CI pipeline added
 v0.3.0  Monitoring with Prometheus and Grafana added
 v0.4.0  Ansible local deployment automation added
+v0.5.0  Singapore job portal providers added
 ```
 
 ---
@@ -89,6 +95,8 @@ v0.4.0  Ansible local deployment automation added
 - APScheduler
 - SMTP email sending
 - HTML/CSS
+- httpx
+- BeautifulSoup
 
 ### DevOps and Infrastructure
 
@@ -123,6 +131,9 @@ The project showcases:
 - Running a Jenkins-based local CI pipeline
 - Monitoring the application with Prometheus and Grafana
 - Automating local deployment with Ansible
+- Adding provider-based job source logic
+- Building safe search-link providers for restricted or dynamic portals
+- Building a real parser provider for Jora SG
 - Preparing deployment paths for Docker, Kubernetes, Ansible, and Terraform
 - Designing a project that can later be hosted on a personal homelab or cloud platform
 
@@ -139,6 +150,8 @@ Application saves subscription into SQLite
         ↓
 Background scan runs
         ↓
+Selected providers are queried
+        ↓
 Job results are collected
         ↓
 HTML report is generated
@@ -147,6 +160,124 @@ Email is sent to the user
         ↓
 User opens the report link from email
 ```
+
+---
+
+## Provider Flow
+
+```text
+User selects providers from the web form
+        ↓
+Application reads selected provider keys
+        ↓
+Provider registry loads matching provider classes
+        ↓
+Each provider runs the search query
+        ↓
+Provider returns normalized JobResult objects
+        ↓
+Application deduplicates and saves results
+        ↓
+Report displays results in a mobile-friendly table
+```
+
+Current provider types:
+
+```text
+API providers        Remotive, Arbeitnow, RemoteOK
+Safe link provider   Singapore portal search links
+Parser provider      Jora SG parser test
+Demo provider        Mock demo source
+```
+
+---
+
+## Singapore Job Portal Support
+
+The project includes a safe Singapore job portal search-link provider.
+
+This provider does not aggressively scrape protected or dynamic websites. Instead, it generates direct search links in the report so users can open the relevant search pages manually.
+
+Supported search-link portals:
+
+```text
+MyCareersFuture
+JobStreet Singapore
+LinkedIn Jobs
+Jora SG
+Indeed SG
+```
+
+The project also includes a real parser provider for:
+
+```text
+Jora SG
+```
+
+The Jora SG provider performs a lightweight parser test and attempts to extract:
+
+```text
+Job title
+Company
+Source
+Location
+Work mode
+Posted date
+Job URL
+```
+
+The Jora SG parser has been improved to reduce irrelevant results and avoid showing company ratings as locations.
+
+---
+
+## Responsible Scraping Approach
+
+This project is designed to avoid aggressive scraping.
+
+The intended rules are:
+
+- Do not scan more than 3 times per day.
+- Prefer public APIs or lightweight sources when available.
+- Avoid heavy browser automation unless absolutely necessary.
+- Avoid bypassing bot protection.
+- Respect robots.txt and website terms where applicable.
+- Avoid scraping sites that explicitly disallow automated access.
+- Add rate limiting when adding more providers.
+- Cache and deduplicate results where possible.
+- Use link-only providers when a site is dynamic, restricted, or unsuitable for direct scraping.
+
+This keeps the project lightweight and reduces the risk of being blocked by job portals.
+
+---
+
+## Example Use Case
+
+A user may submit the following search:
+
+```text
+Job looking for: Entry Level DevOps Engineer
+Alternate job: Intern DevOps Engineer
+Country: Singapore
+Work arrangement: Remote or Hybrid
+Job posted duration: Within the past 1 month
+Report frequency: Once a day
+Scan frequency: Once a day
+Email: user@example.com
+```
+
+The system will then scan the selected sources, generate a job report, and email the result to the user.
+
+Another test case for the Jora SG parser:
+
+```text
+Job looking for: Cloud Engineer
+Alternate job: Platform Engineer
+Country: Singapore
+Work arrangement: Remote or Hybrid
+Source: Jora SG real parser test
+```
+
+This search is useful for testing DevOps-adjacent roles such as Cloud Engineer, Cloud Platform Engineer, Infrastructure Engineer, DevSecOps Engineer, Platform Engineer, and SRE-related roles.
 
 ---
 
@@ -228,25 +359,6 @@ Deployment completes successfully
 
 ---
 
-## Example Use Case
-
-A user may submit the following search:
-
-```text
-Job looking for: Entry Level DevOps Engineer
-Alternate job: Intern DevOps Engineer
-Country: Singapore
-Work arrangement: Remote or Hybrid
-Job posted duration: Within the past 1 month
-Report frequency: Once a day
-Scan frequency: Once a day
-Email: user@example.com
-```
-
-The system will then scan the selected sources, generate a job report, and email the result to the user.
-
----
-
 ## Project Structure
 
 ```text
@@ -264,6 +376,8 @@ job-scraper-service/
 │   │   ├── remotive.py
 │   │   ├── arbeitnow.py
 │   │   ├── remoteok.py
+│   │   ├── link_sources.py
+│   │   ├── jora_sg.py
 │   │   └── registry.py
 │   ├── static/
 │   │   └── styles.css
@@ -494,7 +608,10 @@ docker pull ghcr.io/anarkeyv/job-scraper-service:latest
 Run the container using your local `.env` file:
 
 ```bash
-docker run --rm   --env-file .env   -p 8000:8000   ghcr.io/anarkeyv/job-scraper-service:latest
+docker run --rm \
+  --env-file .env \
+  -p 8000:8000 \
+  ghcr.io/anarkeyv/job-scraper-service:latest
 ```
 
 Open the application:
@@ -619,7 +736,7 @@ Run Tests
 Smoke Test Container
 ```
 
-The local Jenkins demo was tested using a separate Jenkins container on port `8081` to avoid affecting another Jenkins setup.
+The local Jenkins demo was tested using a separate Jenkins container on port `8081`.
 
 Tested Jenkins flow:
 
@@ -783,24 +900,6 @@ Possible future uses:
 
 ---
 
-## Responsible Scraping Approach
-
-This project is designed to avoid aggressive scraping.
-
-The intended rules are:
-
-- Do not scan more than 3 times per day.
-- Prefer public APIs or lightweight sources when available.
-- Avoid heavy browser automation unless absolutely necessary.
-- Respect robots.txt and website terms where applicable.
-- Avoid scraping sites that explicitly disallow automated access.
-- Add rate limiting when adding more providers.
-- Cache and deduplicate results where possible.
-
-This keeps the project lightweight and reduces the risk of being blocked by job portals.
-
----
-
 ## Current Limitations
 
 The current version is an MVP and may not include all production features.
@@ -814,6 +913,8 @@ Known limitations:
 - Report hosting is local unless deployed to a public server.
 - The app is not yet production-hardened.
 - Kubernetes, Terraform, Ansible, Jenkins, and monitoring are included as starter DevOps components but can be expanded further.
+- Jora SG parsing is a best-effort parser and may need updates if the website markup changes.
+- LinkedIn, Indeed, JobStreet, and MyCareersFuture are currently handled safely as search-link sources instead of direct scrapers.
 
 ---
 
@@ -825,6 +926,8 @@ Planned improvements include:
 - Add subscription management page
 - Add unsubscribe link
 - Add more job providers
+- Add provider health reporting
+- Add per-provider error reporting in the email/report
 - Add deduplication improvements
 - Add PostgreSQL support
 - Add proper background worker with Celery or RQ
@@ -869,23 +972,25 @@ A short demo flow:
 1. Open the website.
 2. Explain the purpose of the job scraper.
 3. Create a new job alert.
-4. Show that the alert is saved.
+4. Show the source select all / unselect all controls.
 5. Show the generated HTML report.
 6. Show the email received.
 7. Open the report from the email.
-8. Show the GitHub repository.
-9. Show the passing GitHub Actions workflow.
-10. Show the Docker publish workflow.
-11. Show the published GitHub Container Registry package.
-12. Run the app from the published GHCR image.
-13. Show Docker Compose support.
-14. Show the Jenkins pipeline success screen.
-15. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
-16. Show Prometheus target status as UP.
-17. Show Grafana connected to Prometheus.
-18. Run the Ansible local deployment playbook.
-19. Explain the Ansible deployment checks and health validation.
-20. Explain future DevOps expansion with Kubernetes, Terraform, dashboards, alerting, and homelab deployment.
+8. Show safe Singapore portal search links.
+9. Show Jora SG parser results for Cloud Engineer / Platform Engineer.
+10. Show the GitHub repository.
+11. Show the passing GitHub Actions workflow.
+12. Show the Docker publish workflow.
+13. Show the published GitHub Container Registry package.
+14. Run the app from the published GHCR image.
+15. Show Docker Compose support.
+16. Show the Jenkins pipeline success screen.
+17. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
+18. Show Prometheus target status as UP.
+19. Show Grafana connected to Prometheus.
+20. Run the Ansible local deployment playbook.
+21. Explain the Ansible deployment checks and health validation.
+22. Explain future DevOps expansion with Kubernetes, Terraform, dashboards, alerting, and homelab deployment.
 ```
 
 ---
@@ -898,6 +1003,9 @@ This project demonstrates:
 - FastAPI routing
 - HTML template rendering
 - SQLite database usage
+- Provider-based application design
+- Lightweight web parsing with BeautifulSoup
+- Responsible scraping design
 - Background job execution
 - SMTP email configuration
 - Docker containerization
