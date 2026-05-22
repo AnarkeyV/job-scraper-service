@@ -36,9 +36,9 @@ pipeline {
                       -p 8001:8000 \
                       ${IMAGE_NAME}:${IMAGE_TAG}
 
-                    sleep 8
+                    sleep 10
 
-                    curl -f http://localhost:8001/health
+                    curl -f http://host.docker.internal:8001/health
                 '''
             }
             post {
