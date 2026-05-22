@@ -58,30 +58,41 @@
         </label>
         <fieldset class="full">
           <legend>Sources</legend>
-            <label class="check">
-              <input type="checkbox" name="providers" value="remotive" checked />
-              Remotive
-            </label>
-            <label class="check">
-              <input type="checkbox" name="providers" value="arbeitnow" checked />
-              Arbeitnow
-            </label>
-            <label class="check">
-              <input type="checkbox" name="providers" value="remoteok" />
-              RemoteOK
-            </label>
-            <label class="check">
-              <input type="checkbox" name="providers" value="search_links" checked />
-              Singapore portal search links: MyCareersFuture, JobStreet, LinkedIn, Jora SG, Indeed SG
-            </label>
-            <label class="check">
-              <input type="checkbox" name="providers" value="jora_sg" />
-              Jora SG real parser test
-            </label>
-            <label class="check">
-              <input type="checkbox" name="providers" value="mock" />
-              Mock demo source
-            </label>
+
+          <div class="source-actions">
+            <button type="button" id="select-all-sources">Select all</button>
+            <button type="button" id="clear-all-sources">Unselect all</button>
+          </div>
+
+          <label class="check">
+            <input type="checkbox" name="providers" value="remotive" checked />
+            Remotive
+          </label>
+
+          <label class="check">
+            <input type="checkbox" name="providers" value="arbeitnow" checked />
+            Arbeitnow
+          </label>
+
+          <label class="check">
+            <input type="checkbox" name="providers" value="remoteok" />
+            RemoteOK
+          </label>
+
+          <label class="check">
+            <input type="checkbox" name="providers" value="search_links" checked />
+            Singapore portal search links: MyCareersFuture, JobStreet, LinkedIn, Jora SG, Indeed SG
+          </label>
+
+          <label class="check">
+            <input type="checkbox" name="providers" value="jora_sg" />
+            Jora SG real parser test
+          </label>
+
+          <label class="check">
+            <input type="checkbox" name="providers" value="mock" />
+            Mock demo source
+          </label>
         </fieldset>
         <button class="full" type="submit">Create alert and run first scan</button>
       </form>
@@ -105,5 +116,23 @@
       {% endif %}
     </section>
   </main>
+
+  <script>
+    const selectAllButton = document.getElementById("select-all-sources");
+    const clearAllButton = document.getElementById("clear-all-sources");
+    const sourceCheckboxes = document.querySelectorAll('input[name="providers"]');
+
+    selectAllButton.addEventListener("click", () => {
+      sourceCheckboxes.forEach((checkbox) => {
+        checkbox.checked = true;
+      });
+    });
+
+    clearAllButton.addEventListener("click", () => {
+      sourceCheckboxes.forEach((checkbox) => {
+        checkbox.checked = false;
+      });
+    });
+  </script>
 </body>
 </html>
