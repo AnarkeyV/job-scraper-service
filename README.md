@@ -40,6 +40,8 @@ The application is designed to be lightweight enough to run on a local machine, 
 - Ansible local deployment automation
 - Safe Singapore job portal search-link provider
 - Jora SG real parser provider
+- Provider status summary in generated reports
+- Per-provider success/failure tracking
 - Kubernetes deployment starter
 - Terraform starter folders for AWS and GCP
 
@@ -67,6 +69,8 @@ The current working MVP supports:
 - Confirming Prometheus target status as `UP`
 - Confirming Grafana is connected to Prometheus as a data source
 - Running an Ansible playbook to automate local Docker Compose deployment and health validation
+- Recording provider scan status into SQLite
+- Showing provider reliability status in generated reports
 - Generating safe search links for major Singapore job portals
 - Parsing Jora SG job listing results for Cloud, DevOps, Platform, Infrastructure, SRE, and related roles
 
@@ -80,6 +84,7 @@ v0.2.0  Jenkins CI pipeline added
 v0.3.0  Monitoring with Prometheus and Grafana added
 v0.4.0  Ansible local deployment automation added
 v0.5.0  Singapore job portal providers added
+v0.6.0  Provider status reporting added
 ```
 
 ---
@@ -134,6 +139,7 @@ The project showcases:
 - Adding provider-based job source logic
 - Building safe search-link providers for restricted or dynamic portals
 - Building a real parser provider for Jora SG
+- Adding operational visibility through provider status reporting
 - Preparing deployment paths for Docker, Kubernetes, Ansible, and Terraform
 - Designing a project that can later be hosted on a personal homelab or cloud platform
 
@@ -151,6 +157,8 @@ Application saves subscription into SQLite
 Background scan runs
         ↓
 Selected providers are queried
+        ↓
+Provider status is recorded
         ↓
 Job results are collected
         ↓
@@ -189,6 +197,36 @@ Safe link provider   Singapore portal search links
 Parser provider      Jora SG parser test
 Demo provider        Mock demo source
 ```
+
+---
+
+## Provider Status Reporting
+
+The project now includes provider reliability reporting.
+
+Each scan records provider-level status into SQLite so that the generated report can show which sources worked, failed, or returned no results.
+
+The report includes a Provider Status Summary table with:
+
+```text
+Provider
+Status
+Jobs Found
+Message
+```
+
+Example:
+
+```text
+Provider     Status     Jobs Found     Message
+jora_sg      success    30             OK; OK
+remotive     success    0              No matching jobs
+remoteok     failed     0              Timeout error
+```
+
+This improves operational visibility because the user can quickly tell whether an empty report means no jobs were found or whether a specific provider failed.
+
+The provider status data is stored in the `provider_status` SQLite table.
 
 ---
 
@@ -913,6 +951,7 @@ Known limitations:
 - Report hosting is local unless deployed to a public server.
 - The app is not yet production-hardened.
 - Kubernetes, Terraform, Ansible, Jenkins, and monitoring are included as starter DevOps components but can be expanded further.
+- Provider status reporting currently groups results at provider/status level for the latest scan.
 - Jora SG parsing is a best-effort parser and may need updates if the website markup changes.
 - LinkedIn, Indeed, JobStreet, and MyCareersFuture are currently handled safely as search-link sources instead of direct scrapers.
 
@@ -926,8 +965,8 @@ Planned improvements include:
 - Add subscription management page
 - Add unsubscribe link
 - Add more job providers
-- Add provider health reporting
-- Add per-provider error reporting in the email/report
+- Add provider status history page
+- Add per-provider error reporting in the email body
 - Add deduplication improvements
 - Add PostgreSQL support
 - Add proper background worker with Celery or RQ
@@ -978,19 +1017,20 @@ A short demo flow:
 7. Open the report from the email.
 8. Show safe Singapore portal search links.
 9. Show Jora SG parser results for Cloud Engineer / Platform Engineer.
-10. Show the GitHub repository.
-11. Show the passing GitHub Actions workflow.
-12. Show the Docker publish workflow.
-13. Show the published GitHub Container Registry package.
-14. Run the app from the published GHCR image.
-15. Show Docker Compose support.
-16. Show the Jenkins pipeline success screen.
-17. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
-18. Show Prometheus target status as UP.
-19. Show Grafana connected to Prometheus.
-20. Run the Ansible local deployment playbook.
-21. Explain the Ansible deployment checks and health validation.
-22. Explain future DevOps expansion with Kubernetes, Terraform, dashboards, alerting, and homelab deployment.
+10. Show the Provider Status Summary in the generated report.
+11. Show the GitHub repository.
+12. Show the passing GitHub Actions workflow.
+13. Show the Docker publish workflow.
+14. Show the published GitHub Container Registry package.
+15. Run the app from the published GHCR image.
+16. Show Docker Compose support.
+17. Show the Jenkins pipeline success screen.
+18. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
+19. Show Prometheus target status as UP.
+20. Show Grafana connected to Prometheus.
+21. Run the Ansible local deployment playbook.
+22. Explain the Ansible deployment checks and health validation.
+23. Explain future DevOps expansion with Kubernetes, Terraform, dashboards, alerting, and homelab deployment.
 ```
 
 ---
@@ -1006,6 +1046,7 @@ This project demonstrates:
 - Provider-based application design
 - Lightweight web parsing with BeautifulSoup
 - Responsible scraping design
+- Provider status and reliability reporting
 - Background job execution
 - SMTP email configuration
 - Docker containerization
