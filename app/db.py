@@ -27,6 +27,17 @@ CREATE TABLE IF NOT EXISTS scan_runs (
     error TEXT,
     FOREIGN KEY(subscription_id) REFERENCES subscriptions(id)
 );
+CREATE TABLE IF NOT EXISTS provider_status (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    scan_run_id INTEGER NOT NULL,
+    provider TEXT NOT NULL,
+    status TEXT NOT NULL,
+    jobs_found INTEGER NOT NULL DEFAULT 0,
+    message TEXT,
+    started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    finished_at TEXT,
+    FOREIGN KEY(scan_run_id) REFERENCES scan_runs(id)
+);
 CREATE TABLE IF NOT EXISTS job_results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     subscription_id INTEGER NOT NULL,

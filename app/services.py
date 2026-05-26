@@ -65,14 +65,59 @@ async def run_scan(subscription_id: int) -> tuple[int, str]:
     inserted = 0
     error = None
     all_jobs: list[JobResult] = []
+    provider_job_counts: dict[str, int] = {}
+
     try:
         for query in queries:
             for provider_key in providers:
                 provider = PROVIDERS.get(provider_key)
+
                 if not provider:
+                    with get_conn() as conn:
+                        conn.execute(
+                            """
+                            INSERT INTO provider_status
+                            (scan_run_id, provider, status, jobs_found, message, finished_at)
+                            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                            """,
+                            (run_id, provider_key, "failed", 0, "Provider not found"),
+                        )
+                        conn.commit()
                     continue
-                jobs = await provider.search(query, countries, work_mode, max_age_days)
-                all_jobs.extend(jobs)
+
+                try:
+                    jobs = await provider.search(query, countries, work_mode, max_age_days)
+                    jobs = list(jobs)
+
+                    all_jobs.extend(jobs)
+                    provider_job_counts[provider_key] = provider_job_counts.get(provider_key, 0) + len(jobs)
+
+                    message = "OK" if jobs else "No matching jobs"
+
+                    with get_conn() as conn:
+                        conn.execute(
+                            """
+                            INSERT INTO provider_status
+                            (scan_run_id, provider, status, jobs_found, message, finished_at)
+                            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                            """,
+                            (run_id, provider_key, "success", len(jobs), message),
+                        )
+                        conn.commit()
+
+                except Exception as provider_exc:
+                    with get_conn() as conn:
+                        conn.execute(
+                            """
+                            INSERT INTO provider_status
+                            (scan_run_id, provider, status, jobs_found, message, finished_at)
+                            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                            """,
+                            (run_id, provider_key, "failed", 0, str(provider_exc)),
+                        )
+                        conn.commit()
+
+                    continue
         with get_conn() as conn:
             for job in all_jobs:
                 if not job.url:
@@ -114,12 +159,42 @@ def generate_report(subscription_id: int) -> str:
     report_id = uuid.uuid4().hex[:12]
     with get_conn() as conn:
         sub = conn.execute("SELECT * FROM subscriptions WHERE id = ?", (subscription_id,)).fetchone()
+
+        latest_run = conn.execute(
+            """
+            SELECT id
+            FROM scan_runs
+            WHERE subscription_id = ?
+            ORDER BY started_at DESC
+            LIMIT 1
+            """,
+            (subscription_id,),
+        ).fetchone()
+
+        provider_statuses = []
+        if latest_run:
+            provider_statuses = conn.execute(
+                """
+                SELECT provider, status, SUM(jobs_found) AS jobs_found, GROUP_CONCAT(message, '; ') AS message
+                FROM provider_status
+                WHERE scan_run_id = ?
+                GROUP BY provider, status
+                ORDER BY provider
+                """,
+                (latest_run["id"],),
+            ).fetchall()
+
         jobs = conn.execute(
             "SELECT * FROM job_results WHERE subscription_id = ? ORDER BY COALESCE(posted_at, discovered_at) DESC LIMIT 200",
             (subscription_id,),
         ).fetchall()
     template = env.get_template("report.html")
-    html = template.render(subscription=sub, jobs=jobs, generated_at=datetime.now().strftime("%Y-%m-%d %H:%M"))
+    html = template.render(
+        subscription=sub,
+        jobs=jobs,
+        provider_statuses=provider_statuses,
+        generated_at=datetime.now().strftime("%Y-%m-%d %H:%M"),
+    )
     reports_dir = Path("reports")
     reports_dir.mkdir(exist_ok=True)
     html_path = reports_dir / f"{report_id}.html"
