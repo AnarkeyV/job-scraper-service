@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: Job Scraper Dashboards
+    orgId: 1
+    folder: Job Scraper Service
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
