@@ -1,486 +1,724 @@
-# Job Scraper Service
+[![CI](https://github.com/anarkeyv/job-scraper-service/actions/workflows/ci.yml/badge.svg)](https://github.com/anarkeyv/job-scraper-service/actions)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-job%20alert%20service-009688.svg)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
+[![GHCR](https://img.shields.io/badge/GHCR-published-24292f.svg)](https://github.com/users/anarkeyv/packages/container/package/job-scraper-service)
+[![Jenkins](https://img.shields.io/badge/Jenkins-CI%20validated-D24939.svg)](https://www.jenkins.io/)
+[![Prometheus](https://img.shields.io/badge/Prometheus-monitoring-orange.svg)](https://prometheus.io/)
+[![Grafana](https://img.shields.io/badge/Grafana-dashboard-F46800.svg)](https://grafana.com/)
+[![Ansible](https://img.shields.io/badge/Ansible-local%20deployment-black.svg)](https://www.ansible.com/)
+[![Status](https://img.shields.io/badge/project-v0.9.0%20portfolio%20ready-success.svg)](#project-status)
 
-A lightweight, local-first job alert web application that allows users to create job search subscriptions, scan selected job sources, generate mobile-friendly HTML reports, send the results by email, and observe provider/application health through monitoring tools.
+# 🔎 Job Scraper Service — DevOps Portfolio Project
 
-This project was built as a DevOps-focused personal portfolio project. The goal is not only to create a working job scraper, but also to demonstrate practical skills in application development, Docker, CI/CD, automation, monitoring, infrastructure planning, local deployment automation, provider reliability tracking, and future homelab deployment.
+A lightweight, local-first job alert platform built with **FastAPI**, **SQLite**, **Docker**, **GitHub Actions**, **Jenkins**, **Prometheus**, **Grafana**, and **Ansible**.
 
----
+This project started as a simple job alert form, but gradually evolved into a full DevOps learning sandbox that demonstrates application development, CI/CD, containerisation, monitoring, provider reliability tracking, dashboard provisioning, and local deployment automation.
 
-## Project Overview
-
-Job Scraper Service helps users track job postings based on their preferred job title, alternative job title, country, work arrangement, job source, and scan/report frequency.
-
-A user can submit a job alert through the web form. The application then saves the subscription, scans the selected job sources, generates a clean HTML job report, and emails the report link to the user.
-
-The application is designed to be lightweight enough to run on a local machine, small homelab server, or cloud VM.
-
----
-
-## Key Features
-
-- Web landing page for creating job search alerts
-- User-defined primary and alternative job titles
-- Country and work arrangement filtering
-- Remote, hybrid, or flexible work preference options
-- Configurable job source selection
-- Select all / unselect all controls for job sources
-- Responsible scan frequency control
-- Maximum recommended scan frequency: no more than 3 times per day
-- SQLite database for local persistence
-- HTML job report generation
-- Mobile-friendly report layout
-- Email delivery using SMTP
-- Provider Summary table inside email reports
-- Provider Status Summary inside generated job reports
-- Provider Status History page
-- Provider and status filtering on the history page
-- Provider status badges for easier visual scanning
-- Docker Compose support
-- GitHub Actions CI workflow
-- GitHub Container Registry image publishing
-- Jenkins pipeline support
-- Jenkins local CI pipeline tested successfully
-- Prometheus monitoring support
-- Grafana data source provisioning
-- Provisioned Grafana dashboard
-- Ansible local deployment automation
-- Safe Singapore job portal search-link provider
-- Jora SG real parser provider
-- Kubernetes deployment starter
-- Terraform starter folders for AWS and GCP
+The goal of this project is not only to scrape jobs. The bigger goal is to show how a small application can be built, tested, containerised, monitored, versioned, released, and prepared for future cloud or homelab deployment.
 
 ---
 
-## Current MVP Status
+## 📋 Table of Contents
 
-The current working MVP supports:
-
-- Creating a job alert from the website
-- Saving the subscription into SQLite
-- Running a job scan
-- Saving job results
-- Generating an HTML report
-- Sending the report by email
-- Running locally with Python
-- Running with Docker Compose
-- Running directly from the published GitHub Container Registry image
-- Passing local `pytest` tests
-- Passing GitHub Actions CI
-- Publishing a Docker image to GitHub Container Registry on release
-- Running a Jenkins pipeline that clones the repo, builds the Docker image, runs tests, starts a container, and performs a `/health` smoke test
-- Exposing a `/metrics` endpoint for Prometheus
-- Running Prometheus and Grafana through Docker Compose
-- Confirming Prometheus target status as `UP`
-- Confirming Grafana is connected to Prometheus as a data source
-- Loading a provisioned Grafana dashboard automatically
-- Displaying service health and app counters in Grafana
-- Running an Ansible playbook to automate local Docker Compose deployment and health validation
-- Generating safe search links for major Singapore job portals
-- Parsing Jora SG job listing results for Cloud, DevOps, Platform, Infrastructure, SRE, and related roles
-- Tracking provider success/failure status per scan
-- Displaying provider status inside reports, emails, and the Provider Status History page
-- Filtering provider history by provider and status
+- [Project Status](#project-status)
+- [Project Overview](#project-overview)
+- [Key Features](#key-features)
+- [Screenshots and Evidence](#screenshots-and-evidence)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Application Routes](#application-routes)
+- [Provider Support](#provider-support)
+- [Provider Status Reporting](#provider-status-reporting)
+- [Monitoring and Observability](#monitoring-and-observability)
+- [DevOps Workflow](#devops-workflow)
+- [Local Development](#local-development)
+- [Docker Compose](#docker-compose)
+- [GitHub Container Registry](#github-container-registry)
+- [Jenkins Pipeline](#jenkins-pipeline)
+- [Ansible Deployment](#ansible-deployment)
+- [Project Structure](#project-structure)
+- [Release History](#release-history)
+- [Skills Demonstrated](#skills-demonstrated)
+- [Troubleshooting Notes](#troubleshooting-notes)
+- [Current Limitations](#current-limitations)
+- [Future Improvements](#future-improvements)
 
 ---
 
-## Release History
+## ✅ Project Status
+
+| Area | Status |
+|---|---|
+| FastAPI web application | Completed |
+| Job alert creation form | Completed |
+| SQLite persistence | Completed |
+| HTML job report generation | Completed |
+| Email report delivery | Completed |
+| Provider selection | Completed |
+| Select all / unselect all sources | Completed |
+| Singapore job portal search-link provider | Completed |
+| Jora SG parser test | Completed |
+| Provider status reporting | Completed |
+| Provider status history page | Completed |
+| Provider/status filters | Completed |
+| Provider status UI badges | Completed |
+| Dockerfile | Completed |
+| Docker Compose | Completed |
+| GitHub Actions CI | Completed |
+| GitHub Container Registry publishing | Completed |
+| Jenkins validation pipeline | Completed |
+| Prometheus monitoring | Completed |
+| Grafana datasource provisioning | Completed |
+| Grafana dashboard provisioning | Completed |
+| Ansible local deployment automation | Completed |
+| Kubernetes starter folder | Prepared |
+| Terraform starter folder | Prepared |
+| Current release | `v0.9.0` |
+
+> **Current branch:** `main`  
+> **Current release:** `v0.9.0 - Grafana Dashboard and Provider UI Improvements`  
+> **Project state:** Portfolio-ready MVP with DevOps evidence
+
+---
+
+## 📖 Project Overview
+
+Job Scraper Service allows a user to create job alerts based on a main job title, alternate job title, email address, country, work mode, job posting age, report frequency, scan frequency, and selected job providers.
+
+After a job alert is submitted, the application saves the subscription, runs a background scan, records provider-level status, generates an HTML report, and sends the report link by email.
+
+The project is intentionally designed to be lightweight and local-first. It can run on a laptop, small server, homelab machine, or cloud VM.
+
+---
+
+## ✨ Key Features
+
+| Feature | Description |
+|---|---|
+| **Job Alert Form** | Web form for creating job search subscriptions |
+| **Primary and Alternate Search Terms** | Supports two search phrases per alert |
+| **Provider Selection** | User can choose which job sources to use |
+| **Select All / Unselect All** | Easier provider selection on the homepage |
+| **SQLite Database** | Local persistence for subscriptions, scan runs, reports, and provider status |
+| **Background Scan** | Runs scans after a subscription is created or manually triggered |
+| **HTML Reports** | Generates readable job reports with matching roles |
+| **Email Delivery** | Sends report links and provider summaries by email |
+| **Provider Summary in Email** | Email body shows provider-level scan results |
+| **Provider Status Summary in Report** | Report shows whether each provider succeeded, failed, or returned no jobs |
+| **Provider Status History Page** | In-app operational view of recent provider scan results |
+| **Provider Filters** | Filter provider history by provider and status |
+| **Status Badges** | Green success and red failure badges improve readability |
+| **Docker Support** | Application can run in a container |
+| **Docker Compose Support** | Runs app, Prometheus, and Grafana together |
+| **GitHub Actions CI** | Automated test workflow on push |
+| **GHCR Publishing** | Docker image published to GitHub Container Registry |
+| **Jenkins Pipeline** | Local Jenkins validates build, test, and smoke test flow |
+| **Prometheus Metrics** | `/metrics` endpoint exposes app metrics |
+| **Grafana Dashboard** | Provisioned dashboard shows service health and app counters |
+| **Ansible Playbook** | Local deployment automation with health validation |
+
+---
+
+## 📸 Screenshots and Evidence
+
+### Landing Page
+
+The homepage allows users to create job alerts, choose sources, and manage existing subscriptions.
+
+![Landing Page](docs/images/landing-page.png)
+
+### Job Report with Provider Summary
+
+Generated reports include both matching jobs and provider status information.
+
+![Job Report Provider Summary](docs/images/job-report-provider-summary.png)
+
+### Email Provider Summary
+
+Email reports include a provider summary table so the user can quickly see whether selected sources worked.
+
+![Email Provider Summary](docs/images/email-provider-summary.png)
+
+### Provider Status History
+
+The provider status page gives an operational view of recent provider scan results.
+
+![Provider Status History](docs/images/provider-status-history.png)
+
+### Provider Status Filters
+
+Provider results can be filtered by provider and status.
+
+![Provider Status Filters](docs/images/provider-status-filters.png)
+
+### Prometheus Target UP
+
+Prometheus successfully scrapes the FastAPI application metrics endpoint.
+
+![Prometheus Target UP](docs/images/prometheus-target-up.png)
+
+### Grafana Dashboard
+
+Grafana dashboard provisioning automatically loads the Job Scraper Service dashboard.
+
+![Grafana Dashboard](docs/images/grafana-dashboard.png)
+
+### GitHub Actions CI
+
+GitHub Actions validates the project through the CI workflow.
+
+![GitHub Actions CI](docs/images/github-actions-ci.png)
+
+### GitHub Release Tags
+
+The project is versioned through Git tags and GitHub releases.
+
+![GitHub Release Tags](docs/images/github-releases.png)
+
+### GitHub Container Registry Package
+
+The Docker image is published to GitHub Container Registry.
+
+![GHCR Package](docs/images/ghcr-package.png)
+
+---
+
+## 🏗️ Architecture
 
 ```text
-v0.1.0  Initial working MVP
-v0.2.0  Jenkins CI pipeline added
-v0.3.0  Monitoring with Prometheus and Grafana added
-v0.4.0  Ansible local deployment automation added
-v0.5.0  Singapore job portal providers added
-v0.6.0  Provider status reporting added
-v0.7.0  Provider status history page added
-v0.8.0  Provider filters and email summary added
-v0.9.0  Grafana dashboard and provider UI improvements added
+┌──────────────────┐
+│ User / Browser   │
+└────────┬─────────┘
+         │ creates job alert
+         ▼
+┌────────────────────────────┐
+│ FastAPI Web Application    │
+│ Forms, routes, templates   │
+└────────┬───────────────────┘
+         │ saves data
+         ▼
+┌────────────────────────────┐
+│ SQLite Database            │
+│ subscriptions, scans,      │
+│ reports, provider status   │
+└────────┬───────────────────┘
+         │ runs scan
+         ▼
+┌────────────────────────────┐
+│ Provider Registry          │
+│ APIs, search links, parser │
+└────────┬───────────────────┘
+         │ returns results
+         ▼
+┌────────────────────────────┐
+│ HTML Report + Email        │
+│ provider summary included  │
+└────────────────────────────┘
+```
+
+### DevOps Architecture
+
+```text
+Developer
+   │
+   │ git push
+   ▼
+GitHub Repository
+   │
+   ├── GitHub Actions CI
+   │       └── run tests
+   │
+   ├── GitHub Release
+   │       └── publish Docker image to GHCR
+   │
+   ├── Jenkins
+   │       └── clone, build, test, smoke test
+   │
+   └── Docker Compose
+           ├── FastAPI app
+           ├── Prometheus
+           └── Grafana
+```
+
+### Monitoring Flow
+
+```text
+FastAPI app exposes /metrics
+        ↓
+Prometheus scrapes job-scraper:8000
+        ↓
+Prometheus target shows UP
+        ↓
+Grafana connects to Prometheus
+        ↓
+Provisioned dashboard displays app health and counters
 ```
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-### Application
-
-- Python
-- FastAPI
-- Jinja2
-- SQLite
-- APScheduler
-- SMTP email sending
-- HTML/CSS
-- httpx
-- BeautifulSoup
-
-### DevOps and Infrastructure
-
-- Git
-- GitHub
-- GitHub Actions
-- GitHub Container Registry
-- Docker
-- Docker Compose
-- Jenkins
-- Prometheus
-- Grafana
-- Ansible
-- Kubernetes
-- Terraform
+| Area | Technology |
+|---|---|
+| Backend | Python, FastAPI |
+| Frontend | HTML, CSS, Jinja2 |
+| Database | SQLite |
+| Background Jobs | APScheduler / FastAPI background tasks |
+| Email | SMTP |
+| Job Provider Logic | httpx, BeautifulSoup, provider registry |
+| Testing | pytest |
+| Containerisation | Docker |
+| Local Orchestration | Docker Compose |
+| CI/CD | GitHub Actions |
+| Container Registry | GitHub Container Registry |
+| Alternative CI | Jenkins |
+| Monitoring | Prometheus |
+| Dashboarding | Grafana |
+| Automation | Ansible |
+| Future Orchestration | Kubernetes starter files |
+| Future IaC | Terraform starter files |
 
 ---
 
-## Why This Project Was Built
+## 📡 Application Routes
 
-This project was created to demonstrate practical Cloud Support and DevOps engineering skills through a realistic use case.
+| Route | Method | Purpose |
+|---|---|---|
+| `/` | `GET` | Homepage and job alert form |
+| `/subscribe` | `POST` | Create a new job alert |
+| `/api/run/{subscription_id}` | `POST` | Manually trigger a scan |
+| `/reports/{report_id}` | `GET` | View generated HTML report |
+| `/provider-status` | `GET` | View provider scan history |
+| `/provider-status?provider=jora_sg` | `GET` | Filter by provider |
+| `/provider-status?status=success` | `GET` | Filter by status |
+| `/health` | `GET` | Health check endpoint |
+| `/metrics` | `GET` | Prometheus metrics endpoint |
 
-The project showcases:
+Example health response:
 
-- Building and running a web application
-- Managing application configuration through environment variables
-- Running the app locally and inside Docker
-- Using Git and GitHub for version control
-- Running automated tests through GitHub Actions
-- Publishing a container image to GitHub Container Registry
-- Running the app from a published Docker image
-- Running a Jenkins-based local CI pipeline
-- Monitoring the application with Prometheus and Grafana
-- Provisioning Grafana dashboards as code
-- Automating local deployment with Ansible
-- Adding provider-based job source logic
-- Building safe search-link providers for restricted/dynamic portals
-- Building a real parser provider for Jora SG
-- Tracking provider reliability over time
-- Displaying provider status in reports and emails
-- Preparing deployment paths for Docker, Kubernetes, Ansible, and Terraform
-- Designing a project that can later be hosted on a personal homelab or cloud platform
-
----
-
-## Application Flow
-
-```text
-User opens website
-        ↓
-User submits job search alert
-        ↓
-Application saves subscription into SQLite
-        ↓
-Background scan runs
-        ↓
-Selected providers are queried
-        ↓
-Provider status is recorded
-        ↓
-Job results are collected
-        ↓
-HTML report is generated
-        ↓
-Email with Provider Summary is sent to the user
-        ↓
-User opens the report link from email
+```json
+{
+  "status": "ok"
+}
 ```
 
 ---
 
-## Provider Flow
+## 🌐 Provider Support
 
-```text
-User selects providers from the web form
-        ↓
-Application reads selected provider keys
-        ↓
-Provider registry loads matching provider classes
-        ↓
-Each provider runs the search query
-        ↓
-Provider returns normalized JobResult objects
-        ↓
-Provider success/failure status is saved
-        ↓
-Application deduplicates and saves results
-        ↓
-Report displays provider summary and matching jobs
-```
+The application uses a provider registry pattern so different job sources can be added cleanly.
 
 Current provider types:
 
-```text
-API providers        Remotive, Arbeitnow, RemoteOK
-Safe link provider   Singapore portal search links
-Parser provider      Jora SG parser test
-Demo provider        Mock demo source
-```
+| Provider Type | Description |
+|---|---|
+| API providers | Sources that expose structured job data |
+| Search-link provider | Safe direct links to external job search portals |
+| Parser provider | Lightweight parser for supported pages |
+| Mock provider | Demo/test provider |
 
----
-
-## Provider Status Reporting
-
-The project includes provider reliability reporting.
-
-Each scan records provider-level status into SQLite so that the generated report can show which sources worked, failed, or returned no results.
-
-The report includes a Provider Status Summary table with:
+Current provider files:
 
 ```text
-Provider
-Status
-Jobs Found
-Message
+app/providers/
+├── base.py
+├── mock.py
+├── remotive.py
+├── arbeitnow.py
+├── remoteok.py
+├── link_sources.py
+├── jora_sg.py
+└── registry.py
 ```
 
-Example:
+### Singapore Job Portal Support
+
+Safe search-link provider support includes:
+
+| Portal | Current Handling |
+|---|---|
+| MyCareersFuture | Search link |
+| JobStreet Singapore | Search link |
+| LinkedIn Jobs | Search link |
+| Jora SG | Search link and parser test |
+| Indeed SG | Search link |
+
+The search-link provider intentionally avoids aggressive scraping for dynamic or restricted job portals.
+
+### Jora SG Parser Test
+
+The Jora SG provider performs a lightweight parser test for DevOps-adjacent searches such as:
 
 ```text
-Provider     Status     Jobs Found     Message
-jora_sg      success    30             OK; OK
-remotive     success    0              No matching jobs
-remoteok     failed     0              Timeout error
+Cloud Engineer
+Platform Engineer
+DevOps Engineer
+Infrastructure Engineer
+SRE
+DevSecOps Engineer
 ```
 
-This improves operational visibility because the user can quickly tell whether an empty report means no jobs were found or whether a specific provider failed.
-
-The provider status data is stored in the `provider_status` SQLite table.
-
----
-
-## Provider Status History Page
-
-The project includes a Provider Status History page:
-
-```text
-/provider-status
-```
-
-This page shows recent provider scan results directly inside the application.
-
-The page displays:
-
-```text
-Provider
-Status
-Jobs Found
-Message
-Search
-Scan Run
-Finished At
-```
-
-The page also supports filtering by:
-
-```text
-Provider
-Status
-```
-
-Example filter URLs:
-
-```text
-/provider-status?status=success
-/provider-status?provider=jora_sg
-/provider-status?provider=jora_sg&status=success
-```
-
-The status column uses badge styling to make results easier to scan visually.
-
-Example:
-
-```text
-SUCCESS  → green badge
-FAILED   → red badge
-```
-
----
-
-## Email Provider Summary
-
-Email reports now include a Provider Summary table.
-
-This allows the user to see provider-level results before opening the full HTML report.
-
-Example:
-
-```text
-Provider Summary
-
-Provider     Status     Jobs Found     Message
-jora_sg      success    30             OK; OK
-```
-
-This improves email usefulness because the recipient can immediately see whether selected providers worked successfully.
-
----
-
-## Singapore Job Portal Support
-
-The project includes a safe Singapore job portal search-link provider.
-
-This provider does not aggressively scrape protected or dynamic websites. Instead, it generates direct search links in the report so users can open the relevant search pages manually.
-
-Supported search-link portals:
-
-```text
-MyCareersFuture
-JobStreet Singapore
-LinkedIn Jobs
-Jora SG
-Indeed SG
-```
-
-The project also includes a real parser provider for:
-
-```text
-Jora SG
-```
-
-The Jora SG provider performs a lightweight parser test and attempts to extract:
+The parser attempts to extract:
 
 ```text
 Job title
 Company
-Source
 Location
+Source
 Work mode
 Posted date
 Job URL
 ```
 
-The Jora SG parser has been improved to reduce irrelevant results and avoid showing company ratings as locations.
+---
+
+## 📊 Provider Status Reporting
+
+Provider status reporting helps answer an important operational question:
+
+> Did the provider fail, or did it simply return no matching jobs?
+
+Each scan records provider-level status into the database.
+
+The Provider Status Summary includes:
+
+| Field | Meaning |
+|---|---|
+| Provider | Source that was scanned |
+| Status | `success` or `failed` |
+| Jobs Found | Number of matching jobs returned |
+| Message | Provider result message or error |
+
+Example:
+
+```text
+Provider     Status     Jobs Found     Message
+jora_sg      success    30             OK; OK
+remoteok     success    0              No matching jobs
+example      failed     0              Timeout error
+```
+
+This status appears in:
+
+- HTML job reports
+- Email report body
+- Provider Status History page
 
 ---
 
-## Responsible Scraping Approach
+## 📈 Monitoring and Observability
 
-This project is designed to avoid aggressive scraping.
+The application exposes Prometheus metrics at:
 
-The intended rules are:
+```text
+/metrics
+```
 
-- Do not scan more than 3 times per day.
-- Prefer public APIs or lightweight sources when available.
-- Avoid heavy browser automation unless absolutely necessary.
-- Avoid bypassing bot protection.
-- Respect robots.txt and website terms where applicable.
-- Avoid scraping sites that explicitly disallow automated access.
-- Add rate limiting when adding more providers.
-- Cache and deduplicate results where possible.
-- Use link-only providers when a site is dynamic, restricted, or unsuitable for direct scraping.
+Current custom metrics:
 
-This keeps the project lightweight and reduces the risk of being blocked by job portals.
+```text
+job_scraper_subscriptions_created_total
+job_scraper_manual_scans_total
+```
+
+Prometheus scrapes the app through Docker Compose networking:
+
+```text
+job-scraper:8000
+```
+
+Grafana is provisioned with:
+
+```text
+monitoring/grafana/provisioning/datasources/prometheus.yml
+monitoring/grafana/provisioning/dashboards/dashboard.yml
+monitoring/grafana/dashboards/job-scraper-dashboard.json
+```
+
+Current Grafana dashboard panels:
+
+| Panel | Purpose |
+|---|---|
+| Service Up | Shows whether the app is up |
+| Subscriptions Created | Tracks created job alerts |
+| Manual Scans Triggered | Tracks manual scan requests |
+| Service Up Over Time | Shows availability over time |
+| Subscriptions Created Over Time | Shows subscription counter changes |
+
+Important note:
+
+> Prometheus counters are currently in-memory application metrics. They reset when the app container restarts.
 
 ---
 
-## Example Use Case
-
-A user may submit the following search:
+## 🔄 DevOps Workflow
 
 ```text
-Job looking for: Entry Level DevOps Engineer
-Alternate job: Intern DevOps Engineer
-Country: Singapore
-Work arrangement: Remote or Hybrid
-Job posted duration: Within the past 1 month
-Report frequency: Once a day
-Scan frequency: Once a day
-Email: user@example.com
+Code change
+   ↓
+Git commit
+   ↓
+Git push
+   ↓
+GitHub Actions CI runs tests
+   ↓
+Release tag is created
+   ↓
+GitHub Release is published
+   ↓
+Docker image is built and pushed to GHCR
+   ↓
+Image can be pulled and run anywhere Docker is available
 ```
 
-The system will then scan the selected sources, generate a job report, and email the result to the user.
-
-Another test case for the Jora SG parser:
+Local Jenkins validation flow:
 
 ```text
-Job looking for: Cloud Engineer
-Alternate job: Platform Engineer
-Country: Singapore
-Work arrangement: Remote or Hybrid
-Source: Jora SG real parser test
-```
-
-This search is useful for testing DevOps-adjacent roles such as Cloud Engineer, Cloud Platform Engineer, Infrastructure Engineer, DevSecOps Engineer, Platform Engineer, and SRE-related roles.
-
----
-
-## DevOps Flow
-
-```text
-Developer pushes code to GitHub
-        ↓
-GitHub Actions runs tests
-        ↓
-GitHub Release triggers Docker publish workflow
-        ↓
-Docker image is published to GitHub Container Registry
-        ↓
-Image can be pulled and run locally or on another host
-```
-
-Local Jenkins pipeline flow:
-
-```text
-Jenkins starts pipeline
-        ↓
-Workspace is cleaned
-        ↓
-Repository is cloned from GitHub
-        ↓
+Jenkins pipeline starts
+   ↓
+Repository is cloned
+   ↓
 Docker image is built
-        ↓
-pytest runs inside the Docker image
-        ↓
-Application container is started on port 8001
-        ↓
-/health endpoint is tested
-        ↓
-Test container is removed
-        ↓
-Pipeline finishes successfully
-```
-
-Monitoring flow:
-
-```text
-Docker Compose starts the application
-        ↓
-Application exposes /metrics
-        ↓
-Prometheus scrapes job-scraper-service:8000
-        ↓
-Prometheus target shows UP
-        ↓
-Grafana connects to Prometheus as a data source
-        ↓
-Grafana loads provisioned dashboard automatically
-        ↓
-Metrics can be visualized and expanded into dashboards
-```
-
-Ansible local deployment flow:
-
-```text
-Run Ansible playbook
-        ↓
-Check Docker is installed
-        ↓
-Check Docker Compose is available
-        ↓
-Confirm project directory exists
-        ↓
-Confirm .env file exists
-        ↓
-Stop existing Docker Compose stack
-        ↓
-Build and start Docker Compose stack
-        ↓
-Show running containers
-        ↓
-Validate /health endpoint
-        ↓
-Deployment completes successfully
+   ↓
+pytest runs inside the image
+   ↓
+Application container starts on test port
+   ↓
+/health smoke test runs
+   ↓
+Container is cleaned up
 ```
 
 ---
 
-## Project Structure
+## 💻 Local Development
+
+### Prerequisites
+
+- Python 3.10+
+- Git
+- Docker Desktop
+- Docker Compose
+- Optional: Jenkins
+- Optional: Ansible
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/anarkeyv/job-scraper-service.git
+cd job-scraper-service
+```
+
+### 2. Create a Virtual Environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 4. Create Environment File
+
+```bash
+cp .env.example .env
+```
+
+Update `.env` with your SMTP settings.
+
+Example:
+
+```env
+APP_BASE_URL=http://127.0.0.1:8000
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your_email@gmail.com
+SMTP_PASSWORD=your_gmail_app_password
+SMTP_FROM=your_email@gmail.com
+```
+
+> Use a Gmail App Password instead of your normal Gmail password.
+
+### 5. Run the App Locally
+
+```bash
+uvicorn app.main:app
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000
+```
+
+### 6. Run Tests
+
+```bash
+python -m pytest
+```
+
+Expected result:
+
+```text
+1 passed
+```
+
+---
+
+## 🐳 Docker Compose
+
+### Run App Only
+
+```bash
+docker compose up --build
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000
+```
+
+Stop:
+
+```bash
+docker compose down
+```
+
+### Run App with Monitoring
+
+```bash
+docker compose --profile monitoring up -d --build
+```
+
+Services:
+
+| Service | URL |
+|---|---|
+| FastAPI app | `http://127.0.0.1:8000` |
+| Prometheus | `http://127.0.0.1:9090` |
+| Grafana | `http://127.0.0.1:3000` |
+
+Stop:
+
+```bash
+docker compose --profile monitoring down
+```
+
+If Docker Compose shows stale network issues:
+
+```bash
+docker compose --profile monitoring down --remove-orphans
+docker network prune
+docker compose --profile monitoring up -d --build
+```
+
+---
+
+## 📦 GitHub Container Registry
+
+Published image:
+
+```text
+ghcr.io/anarkeyv/job-scraper-service
+```
+
+Pull the latest image:
+
+```bash
+docker pull ghcr.io/anarkeyv/job-scraper-service:latest
+```
+
+Pull a release image:
+
+```bash
+docker pull ghcr.io/anarkeyv/job-scraper-service:v0.9.0
+```
+
+Run from GHCR:
+
+```bash
+docker run --rm \
+  --env-file .env \
+  -p 8000:8000 \
+  ghcr.io/anarkeyv/job-scraper-service:v0.9.0
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+## 🧪 Jenkins Pipeline
+
+The repository includes a `Jenkinsfile`.
+
+Pipeline stages:
+
+| Stage | Purpose |
+|---|---|
+| Checkout | Clone the GitHub repository |
+| Build Docker Image | Build the app image |
+| Run Tests | Run `pytest` inside the image |
+| Smoke Test Container | Start container and test `/health` |
+| Cleanup | Remove test container |
+
+The local Jenkins validation confirmed that:
+
+```text
+Repository cloned successfully
+Docker image built successfully
+pytest passed
+Container started successfully
+/health returned {"status":"ok"}
+Pipeline completed successfully
+```
+
+---
+
+## 🤖 Ansible Deployment
+
+The project includes a local deployment playbook:
+
+```text
+ansible/deploy-local.yml
+```
+
+Run:
+
+```bash
+ansible-playbook ansible/deploy-local.yml
+```
+
+The playbook checks:
+
+- Docker availability
+- Docker Compose availability
+- Project directory
+- `.env` file
+- Existing container state
+- Docker Compose deployment
+- `/health` endpoint
+
+Expected final result:
+
+```text
+Job Scraper Service deployed successfully and health check passed.
+```
+
+---
+
+## 📁 Project Structure
 
 ```text
 job-scraper-service/
@@ -506,9 +744,6 @@ job-scraper-service/
 │       ├── index.html
 │       ├── provider_status.html
 │       └── report.html
-├── tests/
-│   ├── conftest.py
-│   └── test_health.py
 ├── ansible/
 │   └── deploy-local.yml
 ├── docs/
@@ -526,6 +761,9 @@ job-scraper-service/
 │   └── prometheus/
 │       └── prometheus.yml
 ├── terraform/
+├── tests/
+│   ├── conftest.py
+│   └── test_health.py
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml
@@ -535,594 +773,179 @@ job-scraper-service/
 ├── Jenkinsfile
 ├── requirements.txt
 ├── .env.example
-├── .gitignore
 └── README.md
 ```
 
 ---
 
-## Screenshots
+## 🏷️ Release History
 
-Screenshots are stored in:
-
-```text
-docs/images/
-```
-
-Suggested screenshots included in the repository:
-
-```text
-docs/images/landing-page.png
-docs/images/job-report.png
-docs/images/email-report.png
-docs/images/provider-status-history.png
-docs/images/provider-status-filters.png
-docs/images/grafana-dashboard.png
-docs/images/github-actions.png
-docs/images/docker-compose.png
-docs/images/prometheus-target-up.png
-docs/images/grafana-prometheus-datasource.png
-docs/images/grafana-home.png
-```
-
-Example Markdown image references:
-
-```markdown
-![Landing Page](docs/images/landing-page.png)
-![Job Report](docs/images/job-report.png)
-![Email Report](docs/images/email-report.png)
-![Provider Status History](docs/images/provider-status-history.png)
-![Provider Status Filters](docs/images/provider-status-filters.png)
-![Grafana Dashboard](docs/images/grafana-dashboard.png)
-![GitHub Actions](docs/images/github-actions.png)
-![Docker Compose](docs/images/docker-compose.png)
-![Prometheus Target UP](docs/images/prometheus-target-up.png)
-![Grafana Prometheus Datasource](docs/images/grafana-prometheus-datasource.png)
-![Grafana Home](docs/images/grafana-home.png)
-```
+| Version | Summary |
+|---|---|
+| `v0.1.0` | Initial working MVP |
+| `v0.2.0` | Jenkins CI pipeline added |
+| `v0.3.0` | Prometheus and Grafana monitoring added |
+| `v0.4.0` | Ansible local deployment automation added |
+| `v0.5.0` | Singapore job portal providers added |
+| `v0.6.0` | Provider status reporting added |
+| `v0.7.0` | Provider status history page added |
+| `v0.8.0` | Provider filters and email summary added |
+| `v0.9.0` | Grafana dashboard and provider UI improvements added |
 
 ---
 
-## Local Setup
+## 📈 Skills Demonstrated
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/anarkeyv/job-scraper-service.git
-cd job-scraper-service
-```
-
-### 2. Create a Virtual Environment
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### 3. Install Dependencies
-
-```bash
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-### 4. Create the Environment File
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and update the required values.
-
-Example:
-
-```env
-APP_BASE_URL=http://127.0.0.1:8000
-
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your_email@gmail.com
-SMTP_PASSWORD=your_gmail_app_password
-SMTP_FROM=your_email@gmail.com
-```
-
-Important: do not use your normal Gmail password. Use a Gmail App Password.
-
-### 5. Run the Application Locally
-
-```bash
-uvicorn app.main:app
-```
-
-Open:
-
-```text
-http://127.0.0.1:8000
-```
+| Skill Area | Tools / Practices |
+|---|---|
+| Python Web Development | FastAPI, Jinja2, routing, templates |
+| Database | SQLite schema design and query logic |
+| Background Processing | Background scans and scheduled workflow planning |
+| Email Automation | SMTP configuration and HTML email reports |
+| Provider Design | Provider registry and normalized job result model |
+| Responsible Scraping | API-first, link-safe sources, lightweight parser approach |
+| Testing | pytest |
+| Version Control | Git, GitHub, tags, release notes |
+| CI/CD | GitHub Actions |
+| Containerisation | Docker, Docker Compose |
+| Registry Publishing | GitHub Container Registry |
+| Jenkins | Local CI validation, Docker build/test/smoke test |
+| Monitoring | Prometheus metrics and target validation |
+| Dashboarding | Grafana datasource and dashboard provisioning |
+| Automation | Ansible local deployment playbook |
+| Infrastructure Planning | Kubernetes and Terraform starter structure |
+| Documentation | README, screenshots, release history, operational notes |
+| Troubleshooting | Docker rebuilds, metrics resets, UI caching, Jenkins pipeline fixes |
 
 ---
 
-## Running with Docker Compose
+## 🛠️ Troubleshooting Notes
 
-```bash
-docker compose up --build
-```
+### `pytest` command not found
 
-Open:
-
-```text
-http://127.0.0.1:8000
-```
-
-Stop the containers:
-
-```bash
-docker compose down
-```
-
----
-
-## Running with Docker Compose and Monitoring
-
-To start the application together with Prometheus and Grafana:
-
-```bash
-docker compose --profile monitoring up -d --build
-```
-
-This starts:
-
-```text
-FastAPI app    http://127.0.0.1:8000
-Prometheus     http://127.0.0.1:9090
-Grafana        http://127.0.0.1:3000
-```
-
-Check the app health endpoint:
-
-```text
-http://127.0.0.1:8000/health
-```
-
-Check the app metrics endpoint:
-
-```text
-http://127.0.0.1:8000/metrics
-```
-
-Check Prometheus targets:
-
-```text
-http://127.0.0.1:9090/targets
-```
-
-The `job-scraper-service` target should show as:
-
-```text
-UP
-```
-
-Grafana default login:
-
-```text
-Username: admin
-Password: admin
-```
-
-Grafana is provisioned to connect to Prometheus as a data source.
-
-The Grafana dashboard is provisioned automatically and can be found under:
-
-```text
-Dashboards → Job Scraper Service → Job Scraper Service Overview
-```
-
-Dashboard panels include:
-
-```text
-Service Up
-Subscriptions Created
-Manual Scans Triggered
-Service Up Over Time
-Subscriptions Created Over Time
-```
-
-Stop the full monitoring stack:
-
-```bash
-docker compose --profile monitoring down
-```
-
-If Docker Compose shows a stale network error, clean unused networks and restart:
-
-```bash
-docker compose --profile monitoring down --remove-orphans
-docker network prune
-docker compose --profile monitoring up -d --build
-```
-
----
-
-## Running from GitHub Container Registry
-
-This project can also be run directly from the published GitHub Container Registry image.
-
-Pull the image:
-
-```bash
-docker pull ghcr.io/anarkeyv/job-scraper-service:latest
-```
-
-Run the container using your local `.env` file:
-
-```bash
-docker run --rm   --env-file .env   -p 8000:8000   ghcr.io/anarkeyv/job-scraper-service:latest
-```
-
-Open the application:
-
-```text
-http://127.0.0.1:8000
-```
-
-This confirms that the application can run from a published container image without rebuilding from source.
-
----
-
-## Running Tests
-
-```bash
-pytest
-```
-
-Expected result:
-
-```text
-1 passed
-```
-
-Or:
+Use:
 
 ```bash
 python -m pytest
 ```
 
----
+This ensures tests run from the active virtual environment.
 
-## Email Setup Notes
+### Grafana shows zero subscriptions
 
-This project uses SMTP for sending job reports by email.
+The subscription counter only increases when a new job alert is created after the current app process starts.
 
-For Gmail:
+Fix:
 
-1. Enable 2-Step Verification on your Google Account.
-2. Create a Gmail App Password.
-3. Use the generated app password in `.env`.
-4. Do not commit `.env` to GitHub.
+1. Open the homepage.
+2. Create a new job alert.
+3. Wait 15–20 seconds.
+4. Refresh Grafana.
 
-The `.gitignore` file should exclude:
+### Manual scan counter works but subscription counter stays zero
 
-```gitignore
-.env
-.venv/
-data/
-reports/
-__pycache__/
-.pytest_cache/
-```
-
----
-
-## GitHub Actions
-
-This repository includes a GitHub Actions workflow to run basic CI checks.
-
-The workflow is intended to:
-
-- Install Python dependencies
-- Run automated tests
-- Confirm the application can be imported successfully
-
-This helps ensure the application remains stable when changes are pushed to GitHub.
-
----
-
-## GitHub Container Registry
-
-This repository includes a Docker publishing workflow.
-
-The workflow is triggered when a GitHub Release is published.
-
-Workflow summary:
+Manual scan requests increase:
 
 ```text
-Create GitHub Release
-        ↓
-GitHub Actions starts Docker publish workflow
-        ↓
-Login to GitHub Container Registry
-        ↓
-Build Docker image
-        ↓
-Push image to ghcr.io
-        ↓
-Image becomes available as a GitHub Package
+job_scraper_manual_scans_total
 ```
 
-Published image:
+New job alert submissions increase:
 
 ```text
-ghcr.io/anarkeyv/job-scraper-service:latest
+job_scraper_subscriptions_created_total
 ```
 
-This allows the application to be pulled and run as a container image.
+These are separate counters.
 
----
+### Prometheus target is down
 
-## Jenkins Pipeline
-
-A `Jenkinsfile` is included in the repository.
-
-The Jenkins pipeline is designed to:
-
-- Check out the repository
-- Build the Docker image
-- Run `pytest` inside the Docker image
-- Start a test application container
-- Perform a `/health` smoke test
-- Clean up the test container
-
-Jenkins pipeline stages:
-
-```text
-Checkout
-Build Docker Image
-Run Tests
-Smoke Test Container
-```
-
-The local Jenkins demo was tested using a separate Jenkins container on port `8081`.
-
-Tested Jenkins flow:
-
-```text
-Jenkins cloned the GitHub repository
-Jenkins built the Docker image
-Jenkins ran pytest inside the Docker image
-Jenkins started the app container on port 8001
-Jenkins checked http://host.docker.internal:8001/health
-Jenkins received {"status":"ok"}
-Jenkins finished successfully
-```
-
-Important note:
-
-```text
-The repository includes the Jenkinsfile version of the pipeline.
-The local Jenkins demo may use the same pipeline logic as an inline Jenkins script if the local Jenkins SCM configuration has issues reading the Jenkinsfile directly from GitHub.
-```
-
-This still demonstrates the main Jenkins CI process clearly.
-
----
-
-## Monitoring with Prometheus and Grafana
-
-The project includes a monitoring setup using Prometheus and Grafana.
-
-Prometheus configuration:
-
-```text
-monitoring/prometheus/prometheus.yml
-```
-
-Grafana data source provisioning configuration:
-
-```text
-monitoring/grafana/provisioning/datasources/prometheus.yml
-```
-
-Grafana dashboard provisioning configuration:
-
-```text
-monitoring/grafana/provisioning/dashboards/dashboard.yml
-```
-
-Grafana dashboard JSON:
-
-```text
-monitoring/grafana/dashboards/job-scraper-dashboard.json
-```
-
-Prometheus is configured to scrape the app through Docker Compose networking:
-
-```text
-job-scraper:8000
-```
-
-Monitoring has been tested successfully:
-
-```text
-Prometheus opened successfully
-Grafana opened successfully
-Grafana connected to Prometheus
-job-scraper-service target showed UP
-/metrics endpoint worked
-Grafana dashboard loaded automatically
-Subscription counter updated in Grafana
-```
-
-Current Grafana dashboard panels:
-
-```text
-Service Up
-Subscriptions Created
-Manual Scans Triggered
-Service Up Over Time
-Subscriptions Created Over Time
-```
-
-Future monitoring improvements:
-
-- Add custom application metrics for scan runs
-- Track number of generated reports
-- Track email send success/failure counts
-- Track provider failures
-- Track provider success rates
-- Track scrape duration
-- Add alert rules for provider failures
-- Add alert rules for application downtime
-
----
-
-## Ansible Local Deployment
-
-The project includes an Ansible playbook for local deployment automation:
-
-```text
-ansible/deploy-local.yml
-```
-
-The playbook is designed to automate the local Docker Compose deployment process.
-
-It performs the following tasks:
-
-- Checks that Docker is installed
-- Shows the Docker version
-- Checks that Docker Compose is available
-- Shows the Docker Compose version
-- Confirms the project directory exists
-- Confirms the `.env` file exists
-- Stops the existing Docker Compose stack
-- Builds and starts the Docker Compose stack
-- Shows running containers
-- Waits for the `/health` endpoint to return HTTP 200
-- Displays a deployment success message
-
-Run the playbook:
+Check that the monitoring stack is running:
 
 ```bash
-ansible-playbook ansible/deploy-local.yml
+docker compose --profile monitoring up -d --build
+docker ps
 ```
 
-Expected final result:
+Then open:
 
 ```text
-Job Scraper Service deployed successfully and health check passed.
+http://127.0.0.1:9090/targets
 ```
 
-This demonstrates basic deployment automation and fits a local homelab workflow.
+### UI changes do not appear in Docker
 
----
+If editing templates or CSS while running through Docker Compose, rebuild the container:
 
-## Docker
-
-Docker is included so that the project can run consistently across different machines.
-
-This is useful for:
-
-- Local development
-- Homelab deployment
-- Cloud VM deployment
-- CI/CD pipelines
-- Future Kubernetes deployment
-
-The application has been tested in the following ways:
-
-```text
-Local Python virtual environment
-Docker Compose
-Docker Compose with monitoring profile
-Published GHCR Docker image
-Jenkins-built Docker image
-Ansible-managed Docker Compose deployment
+```bash
+docker compose --profile monitoring down
+docker compose --profile monitoring up -d --build
 ```
 
----
+Then hard refresh the browser.
 
-## Kubernetes
+### Gmail email does not send
 
-The `k8s/` folder is included as a starter for container orchestration.
+Check:
 
-Possible future uses:
-
-- Deploy the FastAPI app to a Kubernetes cluster
-- Expose the app with a Service
-- Add ConfigMaps and Secrets
-- Add health checks
-- Prepare for homelab Kubernetes or cloud Kubernetes deployment
+- `.env` exists
+- SMTP username is correct
+- Gmail App Password is used
+- 2-Step Verification is enabled
+- `.env` is not committed to GitHub
 
 ---
 
-## Terraform
+## ⚠️ Current Limitations
 
-The `terraform/` folder includes starter folders for AWS and GCP.
+This project is portfolio-ready, but it is still an MVP.
 
-Possible future uses:
+Current limitations:
 
-- Provision a small VM
-- Set up networking
-- Create firewall rules
-- Prepare infrastructure for the app
-- Demonstrate Infrastructure as Code
-
----
-
-## Current Limitations
-
-The current version is an MVP and may not include all production features.
-
-Known limitations:
-
-- SQLite is used for local storage.
-- Email delivery depends on SMTP configuration.
-- Some job sources may require provider-specific logic.
-- Full user authentication is not included.
-- Report hosting is local unless deployed to a public server.
-- The app is not yet production-hardened.
-- Kubernetes, Terraform, Ansible, Jenkins, and monitoring are included as starter DevOps components but can be expanded further.
-- Provider status reporting currently groups results at provider/status level for the latest scan.
-- Jora SG parsing is a best-effort parser and may need updates if the website markup changes.
-- LinkedIn, Indeed, JobStreet, and MyCareersFuture are currently handled safely as search-link sources instead of direct scrapers.
-- Prometheus counters reset when the application container restarts because they are in-memory metrics.
+- SQLite is used instead of PostgreSQL.
+- No user login/authentication yet.
+- Email sending depends on SMTP configuration.
+- Some job portals are handled as safe search links instead of direct scrapers.
+- Jora SG parser may need updates if website markup changes.
+- Prometheus counters reset when the app restarts.
+- The app is not yet deployed to a permanent public server.
+- Kubernetes and Terraform folders are prepared but not yet fully implemented for this app.
+- Jenkins was validated locally and may still need SCM configuration hardening depending on the Jenkins setup.
 
 ---
 
-## Future Improvements
+## 🔮 Future Improvements
 
 Planned improvements include:
 
-- Add user authentication
-- Add subscription management page
+- Add authentication and user-specific alerts
+- Add subscription edit/delete page
 - Add unsubscribe link
-- Add more job providers
-- Add provider status history export
-- Add provider failure metrics
-- Add per-provider error reporting in the email body
-- Add deduplication improvements
-- Add PostgreSQL support
-- Add proper background worker with Celery or RQ
-- Add API documentation page
-- Add richer Prometheus custom metrics
+- Add provider success-rate metrics
+- Add provider failure alerts in Prometheus
 - Add more Grafana panels
-- Add Prometheus alert rules
-- Add Kubernetes secrets and config maps
-- Add Terraform deployment for AWS or GCP
-- Add Ansible playbook for remote homelab deployment
-- Add CI/CD deployment workflow
-- Add Jenkins SCM configuration fix so Jenkins can read the `Jenkinsfile` directly from GitHub without using an inline script workaround
-- Add mobile UI improvements
-- Add dark mode
+- Add email send success/failure metrics
+- Add scan duration metrics
+- Add PostgreSQL support
 - Add CSV export
 - Add PDF report export
+- Add Docker image vulnerability scanning
+- Add Kubernetes manifests for full deployment
+- Add Terraform deployment to a cloud VM
+- Add Ansible remote homelab deployment
+- Add reverse proxy with HTTPS
+- Add scheduled production deployment
+- Deploy to a Linux homelab machine
+- Add proper worker queue with Redis/RQ or Celery
+- Add richer Singapore provider support where terms allow
 
 ---
 
-## Security Notes
+## 🔐 Security Notes
 
-Do not commit secrets to GitHub.
+Do not commit secrets.
 
-The following files and folders should not be committed:
+Keep these files out of Git:
 
 ```text
 .env
@@ -1131,92 +954,42 @@ data/
 reports/
 ```
 
-Use `.env.example` to show required configuration values without exposing real credentials.
+Use `.env.example` for safe configuration documentation.
 
 ---
 
-## Suggested Demo Script
-
-A short demo flow:
+## 🧭 Suggested Demo Flow
 
 ```text
-1. Open the website.
-2. Explain the purpose of the job scraper.
-3. Create a new job alert.
-4. Show the source select all / unselect all controls.
-5. Show the generated HTML report.
-6. Show the Provider Status Summary in the report.
-7. Show the email received.
-8. Show the Provider Summary table in the email.
-9. Open the report from the email.
-10. Show safe Singapore portal search links.
-11. Show Jora SG parser results for Cloud Engineer / Platform Engineer.
-12. Show the Provider Status History page.
-13. Show provider/status filters.
-14. Show provider status badges.
-15. Show the GitHub repository.
-16. Show the passing GitHub Actions workflow.
-17. Show the Docker publish workflow.
-18. Show the published GitHub Container Registry package.
-19. Run the app from the published GHCR image.
-20. Show Docker Compose support.
-21. Show the Jenkins pipeline success screen.
-22. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
-23. Show Prometheus target status as UP.
-24. Show Grafana connected to Prometheus.
-25. Show the provisioned Grafana dashboard.
-26. Run the Ansible local deployment playbook.
-27. Explain the Ansible deployment checks and health validation.
-28. Explain future DevOps expansion with Kubernetes, Terraform, dashboards, alerting, and homelab deployment.
+1. Open the homepage.
+2. Create a job alert.
+3. Show provider selection and source controls.
+4. Trigger or wait for a scan.
+5. Open the generated HTML report.
+6. Show Provider Status Summary.
+7. Show the email Provider Summary.
+8. Open Provider Status History.
+9. Apply provider/status filters.
+10. Show status badges.
+11. Open Prometheus targets and show app is UP.
+12. Open Grafana dashboard and show service metrics.
+13. Show GitHub Actions successful CI run.
+14. Show GHCR package image.
+15. Explain Jenkins validation pipeline.
+16. Explain Ansible local deployment playbook.
+17. Explain future cloud/homelab deployment path.
 ```
 
 ---
 
-## Skills Demonstrated
-
-This project demonstrates:
-
-- Python web development
-- FastAPI routing
-- HTML template rendering
-- SQLite database usage
-- Provider-based application design
-- Lightweight web parsing with BeautifulSoup
-- Responsible scraping design
-- Provider status and reliability reporting
-- Provider status filtering
-- Email report enhancement
-- Background job execution
-- SMTP email configuration
-- Docker containerization
-- Docker Compose orchestration
-- Docker Compose profiles
-- Git and GitHub workflow
-- GitHub Actions CI
-- GitHub Container Registry publishing
-- Docker image pull and run testing
-- Jenkins local CI pipeline setup
-- Jenkins Docker build and smoke testing
-- Prometheus monitoring setup
-- Grafana data source provisioning
-- Grafana dashboard provisioning
-- Ansible local deployment automation
-- Basic automated testing
-- DevOps project structuring
-- Infrastructure as Code planning
-- Monitoring and observability planning
-- Homelab deployment planning
-
----
-
-## License
+## 📄 License
 
 This project is intended for learning, portfolio demonstration, and local personal use.
 
-Before deploying publicly or scraping third-party sites, review the terms of service of each data source.
+Before scraping or integrating third-party job sources in a public deployment, review each source's terms of service and scraping policy.
 
 ---
 
-## Author
+Built as part of a DevOps and Cloud Support learning journey.
 
-Created as a Cloud Support and DevOps portfolio project.
+Last updated: June 2026
