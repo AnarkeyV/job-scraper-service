@@ -63,25 +63,51 @@ async def manual_run(subscription_id: int, background_tasks: BackgroundTasks):
     return {"message": "Scan started", "subscription_id": subscription_id}
 
 @app.get("/provider-status", response_class=HTMLResponse)
-async def provider_status(request: Request):
+async def provider_status(
+    request: Request,
+    provider: str = "",
+    status: str = "",
+):
+    query = """
+        SELECT
+            ps.provider,
+            ps.status,
+            ps.jobs_found,
+            ps.message,
+            ps.finished_at,
+            sr.id AS scan_run_id,
+            sr.subscription_id,
+            s.main_query,
+            s.alternate_query
+        FROM provider_status ps
+        JOIN scan_runs sr ON ps.scan_run_id = sr.id
+        JOIN subscriptions s ON sr.subscription_id = s.id
+        WHERE 1 = 1
+    """
+
+    params = []
+
+    if provider:
+        query += " AND ps.provider = ?"
+        params.append(provider)
+
+    if status:
+        query += " AND ps.status = ?"
+        params.append(status)
+
+    query += """
+        ORDER BY ps.finished_at DESC, ps.id DESC
+        LIMIT 100
+    """
+
     with get_conn() as conn:
-        statuses = conn.execute(
+        statuses = conn.execute(query, params).fetchall()
+
+        providers = conn.execute(
             """
-            SELECT
-                ps.provider,
-                ps.status,
-                ps.jobs_found,
-                ps.message,
-                ps.finished_at,
-                sr.id AS scan_run_id,
-                sr.subscription_id,
-                s.main_query,
-                s.alternate_query
-            FROM provider_status ps
-            JOIN scan_runs sr ON ps.scan_run_id = sr.id
-            JOIN subscriptions s ON sr.subscription_id = s.id
-            ORDER BY ps.finished_at DESC, ps.id DESC
-            LIMIT 100
+            SELECT DISTINCT provider
+            FROM provider_status
+            ORDER BY provider
             """
         ).fetchall()
 
@@ -90,6 +116,9 @@ async def provider_status(request: Request):
         {
             "request": request,
             "statuses": statuses,
+            "providers": providers,
+            "selected_provider": provider,
+            "selected_status": status,
         },
     )
 

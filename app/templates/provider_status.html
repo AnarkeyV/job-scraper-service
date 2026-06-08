@@ -16,6 +16,37 @@
     </section>
 
     <section class="card">
+      <h2>Filter Provider Results</h2>
+
+      <form method="get" action="/provider-status" class="grid-form">
+        <label>Provider
+          <select name="provider">
+            <option value="">All providers</option>
+            {% for provider in providers %}
+              <option value="{{ provider.provider }}" {% if selected_provider == provider.provider %}selected{% endif %}>
+                {{ provider.provider }}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>Status
+          <select name="status">
+            <option value="">All statuses</option>
+            <option value="success" {% if selected_status == "success" %}selected{% endif %}>Success</option>
+            <option value="failed" {% if selected_status == "failed" %}selected{% endif %}>Failed</option>
+          </select>
+        </label>
+
+        <button class="full" type="submit">Apply filters</button>
+      </form>
+
+      <p>
+        <a href="/provider-status">Clear filters</a>
+      </p>
+    </section>
+
+    <section class="card">
       <h2>Recent Provider Results</h2>
 
       {% if statuses %}
@@ -53,7 +84,7 @@
         </table>
       </div>
       {% else %}
-        <p>No provider status records found yet. Run a scan first.</p>
+        <p>No provider status records found for the selected filters.</p>
       {% endif %}
     </section>
   </main>
