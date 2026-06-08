@@ -1,8 +1,8 @@
 # Job Scraper Service
 
-A lightweight, local-first job alert web application that allows users to create job search subscriptions, scan selected job sources, generate mobile-friendly HTML reports, and send the results by email.
+A lightweight, local-first job alert web application that allows users to create job search subscriptions, scan selected job sources, generate mobile-friendly HTML reports, send the results by email, and observe provider/application health through monitoring tools.
 
-This project was built as a DevOps-focused personal portfolio project. The goal is not only to create a working job scraper, but also to demonstrate practical skills in application development, Docker, CI/CD, automation, monitoring, infrastructure planning, local deployment automation, provider-based design, and future homelab deployment.
+This project was built as a DevOps-focused personal portfolio project. The goal is not only to create a working job scraper, but also to demonstrate practical skills in application development, Docker, CI/CD, automation, monitoring, infrastructure planning, local deployment automation, provider reliability tracking, and future homelab deployment.
 
 ---
 
@@ -30,21 +30,22 @@ The application is designed to be lightweight enough to run on a local machine, 
 - HTML job report generation
 - Mobile-friendly report layout
 - Email delivery using SMTP
+- Provider Summary table inside email reports
+- Provider Status Summary inside generated job reports
+- Provider Status History page
+- Provider and status filtering on the history page
+- Provider status badges for easier visual scanning
 - Docker Compose support
 - GitHub Actions CI workflow
 - GitHub Container Registry image publishing
 - Jenkins pipeline support
 - Jenkins local CI pipeline tested successfully
 - Prometheus monitoring support
-- Grafana dashboard/data source support
+- Grafana data source provisioning
+- Provisioned Grafana dashboard
 - Ansible local deployment automation
 - Safe Singapore job portal search-link provider
 - Jora SG real parser provider
-- Provider status summary in generated reports
-- Provider status history page at `/provider-status`
-- Provider and status filters on the provider history page
-- Provider summary table in email reports
-- Per-provider success/failure tracking
 - Kubernetes deployment starter
 - Terraform starter folders for AWS and GCP
 
@@ -71,14 +72,14 @@ The current working MVP supports:
 - Running Prometheus and Grafana through Docker Compose
 - Confirming Prometheus target status as `UP`
 - Confirming Grafana is connected to Prometheus as a data source
+- Loading a provisioned Grafana dashboard automatically
+- Displaying service health and app counters in Grafana
 - Running an Ansible playbook to automate local Docker Compose deployment and health validation
-- Recording provider scan status into SQLite
-- Showing provider reliability status in generated reports
-- Viewing recent provider scan history in the web app
-- Filtering provider scan history by provider and status
-- Receiving provider-level summary details in email reports
 - Generating safe search links for major Singapore job portals
 - Parsing Jora SG job listing results for Cloud, DevOps, Platform, Infrastructure, SRE, and related roles
+- Tracking provider success/failure status per scan
+- Displaying provider status inside reports, emails, and the Provider Status History page
+- Filtering provider history by provider and status
 
 ---
 
@@ -93,6 +94,7 @@ v0.5.0  Singapore job portal providers added
 v0.6.0  Provider status reporting added
 v0.7.0  Provider status history page added
 v0.8.0  Provider filters and email summary added
+v0.9.0  Grafana dashboard and provider UI improvements added
 ```
 
 ---
@@ -143,12 +145,13 @@ The project showcases:
 - Running the app from a published Docker image
 - Running a Jenkins-based local CI pipeline
 - Monitoring the application with Prometheus and Grafana
+- Provisioning Grafana dashboards as code
 - Automating local deployment with Ansible
 - Adding provider-based job source logic
-- Building safe search-link providers for restricted or dynamic portals
+- Building safe search-link providers for restricted/dynamic portals
 - Building a real parser provider for Jora SG
-- Adding operational visibility through provider status reporting
-- Adding an in-app provider status history page
+- Tracking provider reliability over time
+- Displaying provider status in reports and emails
 - Preparing deployment paths for Docker, Kubernetes, Ansible, and Terraform
 - Designing a project that can later be hosted on a personal homelab or cloud platform
 
@@ -173,7 +176,7 @@ Job results are collected
         ↓
 HTML report is generated
         ↓
-Email is sent to the user
+Email with Provider Summary is sent to the user
         ↓
 User opens the report link from email
 ```
@@ -193,9 +196,11 @@ Each provider runs the search query
         ↓
 Provider returns normalized JobResult objects
         ↓
+Provider success/failure status is saved
+        ↓
 Application deduplicates and saves results
         ↓
-Report displays results in a mobile-friendly table
+Report displays provider summary and matching jobs
 ```
 
 Current provider types:
@@ -211,7 +216,7 @@ Demo provider        Mock demo source
 
 ## Provider Status Reporting
 
-The project now includes provider reliability reporting.
+The project includes provider reliability reporting.
 
 Each scan records provider-level status into SQLite so that the generated report can show which sources worked, failed, or returned no results.
 
@@ -241,13 +246,13 @@ The provider status data is stored in the `provider_status` SQLite table.
 
 ## Provider Status History Page
 
-The project includes an in-app provider status history page:
+The project includes a Provider Status History page:
 
 ```text
 /provider-status
 ```
 
-This page shows recent provider scan results directly from SQLite.
+This page shows recent provider scan results directly inside the application.
 
 The page displays:
 
@@ -261,76 +266,48 @@ Scan Run
 Finished At
 ```
 
-This makes it easier to troubleshoot provider behavior without opening each generated report manually.
-
-Example use cases:
+The page also supports filtering by:
 
 ```text
-Check whether Jora SG returned results
-Check whether a provider failed
-Check whether a provider returned zero matching jobs
-Review recent scan run IDs
-Review the search query linked to each provider result
+Provider
+Status
 ```
 
-A link to the Provider Status History page is available from the homepage.
-
----
-
-## Provider Status Filtering
-
-The Provider Status History page supports filtering so recent scan results can be reviewed more easily.
-
-Available filters:
+Example filter URLs:
 
 ```text
-Provider: all providers or a specific provider
-Status: all statuses, success, or failed
-```
-
-Example URLs:
-
-```text
-/provider-status
 /provider-status?status=success
 /provider-status?provider=jora_sg
 /provider-status?provider=jora_sg&status=success
 ```
 
-The page also includes a Clear filters link to return to the full provider status history view.
-
-This makes it easier to quickly answer operational questions such as:
-
-```text
-Which providers succeeded recently?
-Which providers failed recently?
-Is a specific provider still returning jobs?
-Which scan run produced a specific provider result?
-```
-
----
-
-## Provider Summary in Email Reports
-
-Email reports now include a Provider Summary table before the report link.
-
-The email summary shows:
-
-```text
-Provider
-Status
-Jobs Found
-Message
-```
+The status column uses badge styling to make results easier to scan visually.
 
 Example:
 
 ```text
+SUCCESS  → green badge
+FAILED   → red badge
+```
+
+---
+
+## Email Provider Summary
+
+Email reports now include a Provider Summary table.
+
+This allows the user to see provider-level results before opening the full HTML report.
+
+Example:
+
+```text
+Provider Summary
+
 Provider     Status     Jobs Found     Message
 jora_sg      success    30             OK; OK
 ```
 
-This means the user can quickly see provider-level scan results directly from the email without opening the full HTML report first.
+This improves email usefulness because the recipient can immediately see whether selected providers worked successfully.
 
 ---
 
@@ -472,6 +449,8 @@ Prometheus target shows UP
         ↓
 Grafana connects to Prometheus as a data source
         ↓
+Grafana loads provisioned dashboard automatically
+        ↓
 Metrics can be visualized and expanded into dashboards
 ```
 
@@ -537,7 +516,11 @@ job-scraper-service/
 ├── k8s/
 ├── monitoring/
 │   ├── grafana/
+│   │   ├── dashboards/
+│   │   │   └── job-scraper-dashboard.json
 │   │   └── provisioning/
+│   │       ├── dashboards/
+│   │       │   └── dashboard.yml
 │   │       └── datasources/
 │   │           └── prometheus.yml
 │   └── prometheus/
@@ -572,6 +555,9 @@ Suggested screenshots included in the repository:
 docs/images/landing-page.png
 docs/images/job-report.png
 docs/images/email-report.png
+docs/images/provider-status-history.png
+docs/images/provider-status-filters.png
+docs/images/grafana-dashboard.png
 docs/images/github-actions.png
 docs/images/docker-compose.png
 docs/images/prometheus-target-up.png
@@ -585,6 +571,9 @@ Example Markdown image references:
 ![Landing Page](docs/images/landing-page.png)
 ![Job Report](docs/images/job-report.png)
 ![Email Report](docs/images/email-report.png)
+![Provider Status History](docs/images/provider-status-history.png)
+![Provider Status Filters](docs/images/provider-status-filters.png)
+![Grafana Dashboard](docs/images/grafana-dashboard.png)
 ![GitHub Actions](docs/images/github-actions.png)
 ![Docker Compose](docs/images/docker-compose.png)
 ![Prometheus Target UP](docs/images/prometheus-target-up.png)
@@ -722,6 +711,22 @@ Password: admin
 
 Grafana is provisioned to connect to Prometheus as a data source.
 
+The Grafana dashboard is provisioned automatically and can be found under:
+
+```text
+Dashboards → Job Scraper Service → Job Scraper Service Overview
+```
+
+Dashboard panels include:
+
+```text
+Service Up
+Subscriptions Created
+Manual Scans Triggered
+Service Up Over Time
+Subscriptions Created Over Time
+```
+
 Stop the full monitoring stack:
 
 ```bash
@@ -751,10 +756,7 @@ docker pull ghcr.io/anarkeyv/job-scraper-service:latest
 Run the container using your local `.env` file:
 
 ```bash
-docker run --rm \
-  --env-file .env \
-  -p 8000:8000 \
-  ghcr.io/anarkeyv/job-scraper-service:latest
+docker run --rm   --env-file .env   -p 8000:8000   ghcr.io/anarkeyv/job-scraper-service:latest
 ```
 
 Open the application:
@@ -914,10 +916,22 @@ Prometheus configuration:
 monitoring/prometheus/prometheus.yml
 ```
 
-Grafana provisioning configuration:
+Grafana data source provisioning configuration:
 
 ```text
 monitoring/grafana/provisioning/datasources/prometheus.yml
+```
+
+Grafana dashboard provisioning configuration:
+
+```text
+monitoring/grafana/provisioning/dashboards/dashboard.yml
+```
+
+Grafana dashboard JSON:
+
+```text
+monitoring/grafana/dashboards/job-scraper-dashboard.json
 ```
 
 Prometheus is configured to scrape the app through Docker Compose networking:
@@ -934,19 +948,30 @@ Grafana opened successfully
 Grafana connected to Prometheus
 job-scraper-service target showed UP
 /metrics endpoint worked
+Grafana dashboard loaded automatically
+Subscription counter updated in Grafana
 ```
 
-This provides a foundation for future dashboards and alerting.
+Current Grafana dashboard panels:
+
+```text
+Service Up
+Subscriptions Created
+Manual Scans Triggered
+Service Up Over Time
+Subscriptions Created Over Time
+```
 
 Future monitoring improvements:
 
-- Add custom application metrics
-- Track number of job scans
-- Track number of reports generated
+- Add custom application metrics for scan runs
+- Track number of generated reports
 - Track email send success/failure counts
+- Track provider failures
+- Track provider success rates
 - Track scrape duration
-- Add Grafana dashboards
-- Add Prometheus alert rules
+- Add alert rules for provider failures
+- Add alert rules for application downtime
 
 ---
 
@@ -1056,10 +1081,10 @@ Known limitations:
 - Report hosting is local unless deployed to a public server.
 - The app is not yet production-hardened.
 - Kubernetes, Terraform, Ansible, Jenkins, and monitoring are included as starter DevOps components but can be expanded further.
-- Provider status reporting currently groups results at provider/status level for each scan.
-- Provider Status History currently displays the latest 100 provider status rows and does not yet include pagination.
+- Provider status reporting currently groups results at provider/status level for the latest scan.
 - Jora SG parsing is a best-effort parser and may need updates if the website markup changes.
 - LinkedIn, Indeed, JobStreet, and MyCareersFuture are currently handled safely as search-link sources instead of direct scrapers.
+- Prometheus counters reset when the application container restarts because they are in-memory metrics.
 
 ---
 
@@ -1071,14 +1096,15 @@ Planned improvements include:
 - Add subscription management page
 - Add unsubscribe link
 - Add more job providers
-- Add pagination to the provider status history page
-- Add richer provider error summaries and retry recommendations
+- Add provider status history export
+- Add provider failure metrics
+- Add per-provider error reporting in the email body
 - Add deduplication improvements
 - Add PostgreSQL support
 - Add proper background worker with Celery or RQ
 - Add API documentation page
 - Add richer Prometheus custom metrics
-- Add Grafana dashboards
+- Add more Grafana panels
 - Add Prometheus alert rules
 - Add Kubernetes secrets and config maps
 - Add Terraform deployment for AWS or GCP
@@ -1119,28 +1145,29 @@ A short demo flow:
 3. Create a new job alert.
 4. Show the source select all / unselect all controls.
 5. Show the generated HTML report.
-6. Show the email received.
-7. Open the report from the email.
-8. Show safe Singapore portal search links.
-9. Show Jora SG parser results for Cloud Engineer / Platform Engineer.
-10. Show the Provider Status Summary in the generated report.
-11. Open the Provider Status History page from the homepage.
-12. Show recent provider scan results in the app.
-13. Demonstrate filtering by provider and status.
-26. Show the Provider Summary table inside the email report.
-27. Show the GitHub repository.
-26. Show the passing GitHub Actions workflow.
-27. Show the Docker publish workflow.
-26. Show the published GitHub Container Registry package.
-27. Run the app from the published GHCR image.
-26. Show Docker Compose support.
-27. Show the Jenkins pipeline success screen.
-26. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
-27. Show Prometheus target status as UP.
-26. Show Grafana connected to Prometheus.
-27. Run the Ansible local deployment playbook.
-26. Explain the Ansible deployment checks and health validation.
-27. Explain future DevOps expansion with Kubernetes, Terraform, dashboards, alerting, and homelab deployment.
+6. Show the Provider Status Summary in the report.
+7. Show the email received.
+8. Show the Provider Summary table in the email.
+9. Open the report from the email.
+10. Show safe Singapore portal search links.
+11. Show Jora SG parser results for Cloud Engineer / Platform Engineer.
+12. Show the Provider Status History page.
+13. Show provider/status filters.
+14. Show provider status badges.
+15. Show the GitHub repository.
+16. Show the passing GitHub Actions workflow.
+17. Show the Docker publish workflow.
+18. Show the published GitHub Container Registry package.
+19. Run the app from the published GHCR image.
+20. Show Docker Compose support.
+21. Show the Jenkins pipeline success screen.
+22. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
+23. Show Prometheus target status as UP.
+24. Show Grafana connected to Prometheus.
+25. Show the provisioned Grafana dashboard.
+26. Run the Ansible local deployment playbook.
+27. Explain the Ansible deployment checks and health validation.
+28. Explain future DevOps expansion with Kubernetes, Terraform, dashboards, alerting, and homelab deployment.
 ```
 
 ---
@@ -1157,7 +1184,8 @@ This project demonstrates:
 - Lightweight web parsing with BeautifulSoup
 - Responsible scraping design
 - Provider status and reliability reporting
-- Operational history page design
+- Provider status filtering
+- Email report enhancement
 - Background job execution
 - SMTP email configuration
 - Docker containerization
@@ -1171,6 +1199,7 @@ This project demonstrates:
 - Jenkins Docker build and smoke testing
 - Prometheus monitoring setup
 - Grafana data source provisioning
+- Grafana dashboard provisioning
 - Ansible local deployment automation
 - Basic automated testing
 - DevOps project structuring
