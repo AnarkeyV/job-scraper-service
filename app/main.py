@@ -62,6 +62,37 @@ async def manual_run(subscription_id: int, background_tasks: BackgroundTasks):
     background_tasks.add_task(run_scan, subscription_id)
     return {"message": "Scan started", "subscription_id": subscription_id}
 
+@app.get("/provider-status", response_class=HTMLResponse)
+async def provider_status(request: Request):
+    with get_conn() as conn:
+        statuses = conn.execute(
+            """
+            SELECT
+                ps.provider,
+                ps.status,
+                ps.jobs_found,
+                ps.message,
+                ps.finished_at,
+                sr.id AS scan_run_id,
+                sr.subscription_id,
+                s.main_query,
+                s.alternate_query
+            FROM provider_status ps
+            JOIN scan_runs sr ON ps.scan_run_id = sr.id
+            JOIN subscriptions s ON sr.subscription_id = s.id
+            ORDER BY ps.finished_at DESC, ps.id DESC
+            LIMIT 100
+            """
+        ).fetchall()
+
+    return templates.TemplateResponse(
+        "provider_status.html",
+        {
+            "request": request,
+            "statuses": statuses,
+        },
+    )
+
 @app.get("/reports/{report_id}", response_class=HTMLResponse)
 async def view_report(report_id: str):
     with get_conn() as conn:

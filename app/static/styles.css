@@ -34,10 +34,49 @@ th { color:var(--accent); font-size:.85rem; text-transform:uppercase; letter-spa
   border: 1px solid #d0d5dd;
   border-radius: 0.5rem;
   background: #ffffff;
+  color: #1f2937;
   cursor: pointer;
   font-weight: 600;
+  width: auto;
 }
 
 .source-actions button:hover {
   background: #f3f4f6;
+}
+
+/* Source selection buttons */
+.source-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.source-actions button,
+.source-actions button[type="button"],
+#select-all-sources,
+#clear-all-sources {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  min-width: 120px !important;
+  height: auto !important;
+  padding: 0.55rem 0.9rem !important;
+  border: 1px solid #d0d5dd !important;
+  border-radius: 0.5rem !important;
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+}
+
+.source-actions button:hover,
+#select-all-sources:hover,
+#clear-all-sources:hover {
+  background: #f3f4f6 !important;
 }

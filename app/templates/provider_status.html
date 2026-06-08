@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Provider Status History</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="hero compact">
+      <p class="eyebrow">Operational view</p>
+      <h1>Provider Status History</h1>
+      <p>Recent provider scan results from the Job Scraper Service.</p>
+      <p><a href="/">Back to Job Alerts</a></p>
+    </section>
+
+    <section class="card">
+      <h2>Recent Provider Results</h2>
+
+      {% if statuses %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>Status</th>
+              <th>Jobs Found</th>
+              <th>Message</th>
+              <th>Search</th>
+              <th>Scan Run</th>
+              <th>Finished At</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for item in statuses %}
+            <tr>
+              <td>{{ item.provider }}</td>
+              <td>{{ item.status }}</td>
+              <td>{{ item.jobs_found }}</td>
+              <td>{{ item.message }}</td>
+              <td>
+                {{ item.main_query }}
+                {% if item.alternate_query %}
+                  / {{ item.alternate_query }}
+                {% endif %}
+              </td>
+              <td>{{ item.scan_run_id }}</td>
+              <td>{{ item.finished_at }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p>No provider status records found yet. Run a scan first.</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>
