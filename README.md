@@ -42,6 +42,8 @@ The application is designed to be lightweight enough to run on a local machine, 
 - Jora SG real parser provider
 - Provider status summary in generated reports
 - Provider status history page at `/provider-status`
+- Provider and status filters on the provider history page
+- Provider summary table in email reports
 - Per-provider success/failure tracking
 - Kubernetes deployment starter
 - Terraform starter folders for AWS and GCP
@@ -73,6 +75,8 @@ The current working MVP supports:
 - Recording provider scan status into SQLite
 - Showing provider reliability status in generated reports
 - Viewing recent provider scan history in the web app
+- Filtering provider scan history by provider and status
+- Receiving provider-level summary details in email reports
 - Generating safe search links for major Singapore job portals
 - Parsing Jora SG job listing results for Cloud, DevOps, Platform, Infrastructure, SRE, and related roles
 
@@ -88,6 +92,7 @@ v0.4.0  Ansible local deployment automation added
 v0.5.0  Singapore job portal providers added
 v0.6.0  Provider status reporting added
 v0.7.0  Provider status history page added
+v0.8.0  Provider filters and email summary added
 ```
 
 ---
@@ -269,6 +274,63 @@ Review the search query linked to each provider result
 ```
 
 A link to the Provider Status History page is available from the homepage.
+
+---
+
+## Provider Status Filtering
+
+The Provider Status History page supports filtering so recent scan results can be reviewed more easily.
+
+Available filters:
+
+```text
+Provider: all providers or a specific provider
+Status: all statuses, success, or failed
+```
+
+Example URLs:
+
+```text
+/provider-status
+/provider-status?status=success
+/provider-status?provider=jora_sg
+/provider-status?provider=jora_sg&status=success
+```
+
+The page also includes a Clear filters link to return to the full provider status history view.
+
+This makes it easier to quickly answer operational questions such as:
+
+```text
+Which providers succeeded recently?
+Which providers failed recently?
+Is a specific provider still returning jobs?
+Which scan run produced a specific provider result?
+```
+
+---
+
+## Provider Summary in Email Reports
+
+Email reports now include a Provider Summary table before the report link.
+
+The email summary shows:
+
+```text
+Provider
+Status
+Jobs Found
+Message
+```
+
+Example:
+
+```text
+Provider     Status     Jobs Found     Message
+jora_sg      success    30             OK; OK
+```
+
+This means the user can quickly see provider-level scan results directly from the email without opening the full HTML report first.
 
 ---
 
@@ -995,7 +1057,7 @@ Known limitations:
 - The app is not yet production-hardened.
 - Kubernetes, Terraform, Ansible, Jenkins, and monitoring are included as starter DevOps components but can be expanded further.
 - Provider status reporting currently groups results at provider/status level for each scan.
-- Provider Status History currently displays the latest 100 provider status rows.
+- Provider Status History currently displays the latest 100 provider status rows and does not yet include pagination.
 - Jora SG parsing is a best-effort parser and may need updates if the website markup changes.
 - LinkedIn, Indeed, JobStreet, and MyCareersFuture are currently handled safely as search-link sources instead of direct scrapers.
 
@@ -1009,9 +1071,8 @@ Planned improvements include:
 - Add subscription management page
 - Add unsubscribe link
 - Add more job providers
-- Add filtering/search to the provider status history page
 - Add pagination to the provider status history page
-- Add per-provider error reporting in the email body
+- Add richer provider error summaries and retry recommendations
 - Add deduplication improvements
 - Add PostgreSQL support
 - Add proper background worker with Celery or RQ
@@ -1065,19 +1126,21 @@ A short demo flow:
 10. Show the Provider Status Summary in the generated report.
 11. Open the Provider Status History page from the homepage.
 12. Show recent provider scan results in the app.
-13. Show the GitHub repository.
-14. Show the passing GitHub Actions workflow.
-15. Show the Docker publish workflow.
-16. Show the published GitHub Container Registry package.
-17. Run the app from the published GHCR image.
-18. Show Docker Compose support.
-19. Show the Jenkins pipeline success screen.
-20. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
-21. Show Prometheus target status as UP.
-22. Show Grafana connected to Prometheus.
-23. Run the Ansible local deployment playbook.
-24. Explain the Ansible deployment checks and health validation.
-25. Explain future DevOps expansion with Kubernetes, Terraform, dashboards, alerting, and homelab deployment.
+13. Demonstrate filtering by provider and status.
+26. Show the Provider Summary table inside the email report.
+27. Show the GitHub repository.
+26. Show the passing GitHub Actions workflow.
+27. Show the Docker publish workflow.
+26. Show the published GitHub Container Registry package.
+27. Run the app from the published GHCR image.
+26. Show Docker Compose support.
+27. Show the Jenkins pipeline success screen.
+26. Explain the Jenkins stages: clone, build, test, smoke test, cleanup.
+27. Show Prometheus target status as UP.
+26. Show Grafana connected to Prometheus.
+27. Run the Ansible local deployment playbook.
+26. Explain the Ansible deployment checks and health validation.
+27. Explain future DevOps expansion with Kubernetes, Terraform, dashboards, alerting, and homelab deployment.
 ```
 
 ---
